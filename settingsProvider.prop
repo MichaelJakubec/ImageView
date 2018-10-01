@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>SettingsProvider</comment>
+<entry key="settings.autoUpdate">false</entry>
+<entry key="settings.language">en</entry>
+<entry key="current.image">/media/win/Daten/Michi/Fotos/i_massanie_cormaron/13040_218604741310_562636310_4729761_3521263_n.jpg</entry>
+<entry key="current.dir">/media/win/Daten/Michi/Fotos/i_massanie_cormaron</entry>
+<entry key="dia.dir">/media/win/Daten/Michi/Fotos/Roxy</entry>
+</properties>
