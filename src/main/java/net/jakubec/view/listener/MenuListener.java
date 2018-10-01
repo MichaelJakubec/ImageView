@@ -52,23 +52,24 @@ public class MenuListener implements ActionListener {
 				System.exit(0);
 			} else if (eventCode.equals("dia")) {
 				Application.getMainWindow().showDiashowMode();
-
 			} else if (eventCode.equals("next")) {
-
 				File dirPath = Settings.currentDirectory.load();
-
 				String[] images = dirPath.list();
-				Vector<String> v = new Vector<String>();
-				for (int i = 0; i < images.length; i++) {
-					StringTokenizer st = new StringTokenizer(images[i], ".");
+				if (images == null ) {
+					return;
+				}
+				Vector<String> v = new Vector<>();
+				for (String image : images) {
+					StringTokenizer st = new StringTokenizer(image, ".");
 					try {
 						st.nextToken();
 						String shelper = st.nextToken();
 						int start = ImageView.FILETYPES.indexOf(shelper.toLowerCase());
 						if (start != -1) {
-							v.add(images[i]);
+							v.add(image);
 						}
 					} catch (Exception e) {
+						VExceptionHandler.raiseException(e);
 					}
 
 				}
@@ -76,22 +77,28 @@ public class MenuListener implements ActionListener {
 				try {
 					panel.openImage(new File(dirPath, v.elementAt(i + 1)));
 				} catch (ArrayIndexOutOfBoundsException e) {
-					panel.openImage(new File(dirPath, v.firstElement()));
+					if (v.size() != 0) {
+						panel.openImage(new File(dirPath, v.firstElement()));
+					}
 				}
 			} else if (eventCode.equals("previous")) {
 				File dirPath = Settings.currentDirectory.load();
 				String[] images = dirPath.list();
-				Vector<String> v = new Vector<String>();
-				for (int i = 0; i < images.length; i++) {
-					StringTokenizer st = new StringTokenizer(images[i], ".");
+				if (images == null ) {
+					return;
+				}
+				Vector<String> v = new Vector<>();
+				for (String image : images) {
+					StringTokenizer st = new StringTokenizer(image, ".");
 					try {
 						st.nextToken();
 						String shelper = st.nextToken();
 						int start = ImageView.FILETYPES.indexOf(shelper.toLowerCase());
 						if (start != -1) {
-							v.add(images[i]);
+							v.add(image);
 						}
 					} catch (Exception e) {
+						VExceptionHandler.raiseException(e);
 					}
 
 				}
@@ -99,8 +106,9 @@ public class MenuListener implements ActionListener {
 				try {
 					panel.openImage(new File(dirPath, v.elementAt(i - 1)));
 				} catch (ArrayIndexOutOfBoundsException e) {
-					panel.openImage(new File(dirPath, v.lastElement()));
-
+					if (v.size() != 0) {
+						panel.openImage(new File(dirPath, v.lastElement()));
+					}
 				}
 			} else if (eventCode.equals("undo")) {
 				panel.undo();

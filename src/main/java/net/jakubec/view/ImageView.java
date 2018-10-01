@@ -1,6 +1,5 @@
 package net.jakubec.view;
 
-import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -29,8 +28,6 @@ public class ImageView extends JFrame {
 	public static final String FILETYPES = "jpg.gif.png.bmp";
 	private static final long serialVersionUID = -4865378884812046578L;
 
-	/** Container for the */
-	private Container cp;
 	/**
 	 * The current View of the Programm
 	 */
@@ -40,8 +37,6 @@ public class ImageView extends JFrame {
 	 */
 	private MenuListener menuListener;
 
-	/** The path of the image */
-	private File path;
 
 	/**
 	 * Creates a new ImageView-Frame
@@ -64,19 +59,17 @@ public class ImageView extends JFrame {
 
 		// LookAndFell wird auf Nimbus gestezt
 		try {
-			UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+			UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
 
 		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		// Aufruf zum setzten des Menüs
 		addWindowListener(new WindowClosingAdapter(true));
 		showViewMode();
-		this.setIconImage(new ImageIcon(VSettings.rootPath + "icon.gif").getImage());
+		this.setIconImage(new ImageIcon(ImageView.class.getResource("/icon.gif")).getImage());
 	}
 
-	ImageView(final String[] args) {
-
-	}
 
 	public void open(final File file) {
 		currentView.openImage(file);
@@ -95,11 +88,8 @@ public class ImageView extends JFrame {
 
 	@Override
 	public void setTitle(final String title) {
-		StringBuilder sb = new StringBuilder(VSettings.PROG_NAME);
-		sb.append(" - ");
-		sb.append(title);
-
-		super.setTitle(sb.toString());
+		String sb = VSettings.PROG_NAME + " - " + title;
+		super.setTitle(sb);
 	}
 
 	/**
@@ -145,10 +135,6 @@ public class ImageView extends JFrame {
 			menuListener.setCurrentPanel(currentView);
 		}
 		setJMenuBar(MenuFactory.createMenu(menuListener));
-		cp = getContentPane();
-		// creats new MenuBar
-		cp.add(MenuFactory.newMenuBar( menuListener), BorderLayout.NORTH);
-
 	}
 
 	/**
@@ -163,9 +149,10 @@ public class ImageView extends JFrame {
 
 		try {
 			plugin = PluginOrganizer.getInstance().getPluginByName(pluginName);
-			plugin.setup();
+			if (plugin != null) {
+				plugin.setup();
+			}
 		} catch (Exception e) {
-			// TODO- ExceptionHandling adden
 			VExceptionHandler.raiseException(new Exception(e));
 		}
 		if (plugin instanceof ViewPanelPlugin) {

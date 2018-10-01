@@ -66,7 +66,6 @@ public class ImageSaver {
 			    writer.dispose(); 
 			    ios.close(); 
 			    return file;
-				//ImageIO.write(bild, "jpg", new File(saveF,name.getText()+index));
 			}catch(IOException IOE){
 				System.out.println(IOE);
 				return null;

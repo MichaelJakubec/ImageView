@@ -22,7 +22,7 @@ public class Application {
 	/**
 	 * returns the main Window of the Program
 	 * 
-	 * @return
+	 * @return the current ImageView Instance window
 	 */
 	public static ImageView getMainWindow() {
 		return view;
@@ -53,7 +53,7 @@ public class Application {
 				}
 
 			} else if (args.length > 1) {
-				view = new ImageView(args);
+				view = new ImageView();
 			} else {
 				view = new ImageView();
 			}
@@ -81,7 +81,7 @@ public class Application {
 	 * @param ico
 	 *            the icon of the main window
 	 */
-	public static void setProgramIcon(final Image ico) {
+	static void setProgramIcon(final Image ico) {
 		if (view != null && ico != null) {
 			view.setIconImage(ico);
 		}

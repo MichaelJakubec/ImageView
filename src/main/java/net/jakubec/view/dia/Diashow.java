@@ -486,9 +486,9 @@ public class Diashow extends JPanel implements ActionListener, MouseListener,
 			}
 		} else if (event.getActionCommand().equals("start")) {
 			String helper = group.getSelection().getActionCommand();
-			Object[] files = new Object[showmodel.size()];
+			File[] files = new File[showmodel.size()];
 			showmodel.copyInto(files);
-			ArrayList<Object> list = new ArrayList<Object>();
+			ArrayList<File> list = new ArrayList<>();
 			for (int i = 0; i < files.length; i++) {
 				list.add(files[i]);
 			}

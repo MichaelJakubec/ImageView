@@ -29,6 +29,8 @@ import net.jakubec.view.Settings.VSettings;
 import net.jakubec.view.dia.Diapresentation;
 import net.jakubec.view.exception.VExceptionHandler;
 import net.jakubec.view.filedrop.FileDrop;
+import net.jakubec.view.listener.MenuListener;
+import net.jakubec.view.menu.MenuFactory;
 import net.jakubec.view.properties.VProperties;
 import net.jakubec.view.save.ImageSaver;
 
@@ -113,6 +115,7 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 		imp = new ImagePainter();
 		this.add(imp, BorderLayout.CENTER);
 		cp = this;
+		cp.add(MenuFactory.newMenuBar( new MenuListener(this)), BorderLayout.NORTH);
 		addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(final ComponentEvent e) {
@@ -289,9 +292,8 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 
 	@Override
 	public void fullImage() {
-
-		ArrayList<Object> arr = new ArrayList<Object>();
-		arr.add(Settings.currentImage);
+		ArrayList<File> arr = new ArrayList<>();
+		arr.add(Settings.currentImage.load());
 		new Diapresentation(Application.getMainWindow(), arr, false, false, -1);
 		System.out.println("fullImage");
 	}

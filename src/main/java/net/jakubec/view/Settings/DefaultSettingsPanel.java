@@ -1,17 +1,9 @@
 package net.jakubec.view.Settings;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
+import java.awt.*;
 import java.util.Locale;
 
-import javax.swing.ButtonGroup;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JCheckBox;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
 
 import net.jakubec.view.gui.basic.CompoundIcon;
@@ -50,33 +42,40 @@ public class DefaultSettingsPanel extends VAbstractSettingsPanel {
 	@Override
 	public void onSetup() {
 		Locale.setDefault(new Locale(""));
-		JPanel locationPanel = new JPanel();
+		JPanel locationPanel = new JPanel(new GridBagLayout());
 		String lang = Settings.language.load();
 		if (lang == null) {
 			lang = "en";
 		}
-		JRadioButton bt = new JRadioButton(VProperties.getValue("settings.language.english"));
+		JRadioButton bt = new JRadioButton();
 		if (lang.equals("en")) {
 			bt.setSelected(true);
 		}
-		Icon ico = UIManager.getIcon("RadioButton.icon");
-		CompoundIcon icon = new CompoundIcon(ico,
-				new ImageIcon(VSettings.rootPath + "english.gif"), 3);
-		bt.setIcon(icon);
-		locationPanel.setLayout(new GridLayout(2, 1));
+
+		Icon icon = new ImageIcon(DefaultSettingsPanel.class.getResource("/english.gif"));
+
+
 		localisation.add(bt);
 		bt.setActionCommand("en");
-		locationPanel.add(bt);
-		bt = new JRadioButton(VProperties.getValue("settings.language.german"));
-		icon = new CompoundIcon(ico, new ImageIcon(VSettings.rootPath + "german.gif"), 3);
-		bt.setIcon(icon);
+		locationPanel.add(bt, new GridBagConstraints(0,0,1,1,0.0,0.0,GridBagConstraints.WEST,GridBagConstraints.NONE,new Insets(12,12,5,5),0,0));
+		locationPanel.add(
+				new JLabel(VProperties.getValue("settings.language.english"), icon, SwingConstants.LEFT),
+				new GridBagConstraints(1,0,1,1,1.0,0.0,GridBagConstraints.WEST,GridBagConstraints.HORIZONTAL,new Insets(12,0,5,5),0,0)
+		);
+
+		icon = new ImageIcon(DefaultSettingsPanel.class.getResource("/german.gif"));
+		bt = new JRadioButton();
+		bt.setActionCommand("de");
+		localisation.add(bt);
 		if (lang.equals("de")) {
 			bt.setSelected(true);
 		}
-		bt.setActionCommand("de");
-		localisation.add(bt);
-		locationPanel.add(bt);
 
+		locationPanel.add(bt, new GridBagConstraints(0,1,1,1,0.0,0.0,GridBagConstraints.WEST,GridBagConstraints.NONE,new Insets(0,12,5,5),0,0));
+		locationPanel.add(
+				new JLabel(VProperties.getValue("settings.language.german"), icon, SwingConstants.LEFT),
+				new GridBagConstraints(1,1,1,1,1.0,0.0,GridBagConstraints.WEST,GridBagConstraints.HORIZONTAL,new Insets(0,0,5,5),0,0)
+		);
 		locationPanel.setBorder(new TitledBorder(VProperties.getValue("settings.language")));
 		this.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();

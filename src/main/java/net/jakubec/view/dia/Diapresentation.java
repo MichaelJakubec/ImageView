@@ -13,8 +13,7 @@ import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Random;
+import java.util.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -54,7 +53,7 @@ public class Diapresentation extends JWindow implements Runnable, KeyListener {
 	/**
 	 * List with all Images to display
 	 */
-	private final ArrayList<Object> list;
+	private final ArrayList<File> list;
 
 	private final Container cp;
 	private BufferedImage img = new BufferedImage(1, 1, 1);
@@ -64,6 +63,8 @@ public class Diapresentation extends JWindow implements Runnable, KeyListener {
 
 	private static JFrame frame = new JFrame();
 	private final ImageView view;
+	private int replayImage = 0;
+	private final List<File> shownFotos = new LinkedList<>();
 
 	/**
 	 * 
@@ -72,7 +73,7 @@ public class Diapresentation extends JWindow implements Runnable, KeyListener {
 	 * @param zufall
 	 * @param delrand
 	 */
-	Diapresentation(final ImageView view, final ArrayList<Object> list, final boolean zufall,
+	Diapresentation(final ImageView view, final ArrayList<File> list, final boolean zufall,
 			final boolean delrand) {
 		super(frame);
 		cp = this.getContentPane();
@@ -108,7 +109,7 @@ public class Diapresentation extends JWindow implements Runnable, KeyListener {
 		this.setVisible(true);
 	}
 
-	public Diapresentation(final ImageView view, final ArrayList<Object> list,
+	public Diapresentation(final ImageView view, final ArrayList<File> list,
 			final boolean zufall, final boolean delrand, final int wait) {
 		this(view, list, zufall, delrand);
 		this.wait = wait;
@@ -162,24 +163,33 @@ public class Diapresentation extends JWindow implements Runnable, KeyListener {
 	}
 
 	public void keyPressed(final KeyEvent event) {
-		if (event.getKeyCode() == KeyEvent.VK_ESCAPE) {
-			run = false;
-			stopDia();
-			return;
-		} else if (event.getKeyCode() == KeyEvent.VK_SPACE) {
-			if (wait != -1) {
-				if (run == true) {
-					run = false;
+		switch(event.getKeyCode()){
+			case KeyEvent.VK_ESCAPE:
+				run = false;
+				stopDia();
+				return;
+			case  KeyEvent.VK_SPACE:
+				if (wait != -1) {
+					if (run) {
+						run = false;
+					} else {
+						run = true;
+						thread = new Thread(this);
+						thread.start();
+					}
 				} else {
-					run = true;
-					thread = new Thread(this);
-					thread.start();
+					nextPhoto();
+					drawPhoto();
 				}
-			} else {
+				break;
+			case KeyEvent.VK_LEFT:
+				previousPhoto();
+				drawPhoto();
+				break;
+			case KeyEvent.VK_RIGHT:
 				nextPhoto();
 				drawPhoto();
-			}
-		} else {
+			default:
 			if (wait == -1) {
 				nextPhoto();
 				drawPhoto();
@@ -203,28 +213,46 @@ public class Diapresentation extends JWindow implements Runnable, KeyListener {
 		thread.start();
 	}
 
-	private void nextImage() {
+	private File nextImage() {
 
 		if (picture == list.size() - 1) {
 			stopDia();
-			return;
+			return null;
 		}
 
 		picture++;
 		opened = false;
 
+		return list.get(picture);
+
+	}
+
+	private void previousPhoto(){
+		if (zufall) {
+			replayImage ++;
+			File nextFile = shownFotos.get(replayImage);
+			try {
+				this.nextImg = ImageIO.read(nextFile);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	private void nextPhoto() {
-
+		File nextFile;
 		if (zufall) {
-			nextRandom();
-
+			nextFile = nextRandom();
 		} else {
-			nextImage();
+			nextFile = nextImage();
+		}
+		if (nextFile == null){
+			return;
 		}
 		try {
-			this.nextImg = ImageIO.read((File) list.get(picture));
+
+			this.shownFotos.add(0,nextFile);
+			this.nextImg = ImageIO.read(nextFile);
 			if (nextImg == null) {
 				nextPhoto();
 			}
@@ -234,19 +262,25 @@ public class Diapresentation extends JWindow implements Runnable, KeyListener {
 
 	}
 
-	private void nextRandom() throws IllegalArgumentException {
+	private File nextRandom() throws IllegalArgumentException {
+
+		if (replayImage > 0){
+			File nextImage = shownFotos.get(replayImage);
+			replayImage--;
+			return nextImage;
+		}
 
 		if (delrandom && !opened) {
-
 			list.remove(picture);
 		}
 		if (list.size() <= 0) {
 			stopDia();
-			return;
+			return null;
 		}
 		picture = r.nextInt(list.size());
 		opened = false;
 
+		return list.get(picture);
 	}
 
 	@Override
@@ -287,6 +321,7 @@ public class Diapresentation extends JWindow implements Runnable, KeyListener {
 	}
 
 	private void stopDia() {
+		shownFotos.clear();
 		run = false;
 
 		VSettings.saveProps();
