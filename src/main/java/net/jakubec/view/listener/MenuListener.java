@@ -63,6 +63,9 @@ public class MenuListener implements ActionListener {
 					StringTokenizer st = new StringTokenizer(image, ".");
 					try {
 						st.nextToken();
+						if (!st.hasMoreTokens()){
+							continue;
+						}
 						String shelper = st.nextToken();
 						int start = ImageView.FILETYPES.indexOf(shelper.toLowerCase());
 						if (start != -1) {

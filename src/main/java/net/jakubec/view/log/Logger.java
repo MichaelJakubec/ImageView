@@ -1,10 +1,6 @@
 package net.jakubec.view.log;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -12,7 +8,7 @@ import java.util.Date;
 import net.jakubec.view.Settings.VSettings;
 
 public class Logger {
-	private FileOutputStream logStream;
+	private OutputStream logStream;
 	private static final String EOL = System.getProperty("line.separator");
 	private static Logger log;
 
@@ -38,12 +34,13 @@ public class Logger {
 				e.printStackTrace();
 			}
 		}
-		try {
-			log.logStream = new FileOutputStream(logFile, true);
-		} catch (FileNotFoundException e) {
+		//try {
+			//log.logStream = new FileOutputStream(logFile, true);
+			log.logStream = System.out;
+		//} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		//	e.printStackTrace();
+		//}
 
 		DataOutputStream out = new DataOutputStream(log.logStream);
 		StringBuilder sb = new StringBuilder();
@@ -68,7 +65,7 @@ public class Logger {
 			final Exception e) {
 		if (log == null) return;
 		Date date = new Date();
-		DateFormat f = new SimpleDateFormat("HH:mm");
+		DateFormat f = new SimpleDateFormat("HH:mm:ss SSS");
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
@@ -76,11 +73,13 @@ public class Logger {
 		sb.append("]: ");
 		sb.append(msg);
 		sb.append(EOL);
-		sb.append("[");
-		sb.append(f.format(date));
-		sb.append("]: ");
-		sb.append(exceptionString);
-		sb.append(EOL);
+		if (exceptionString != null) {
+			sb.append("[");
+			sb.append(f.format(date));
+			sb.append("]: ");
+			sb.append(exceptionString);
+			sb.append(EOL);
+		}
 		DataOutputStream out = new DataOutputStream(log.logStream);
 		try {
 			out.writeBytes(sb.toString());
@@ -90,6 +89,10 @@ public class Logger {
 			es.printStackTrace();
 		}
 
+	}
+
+	public static void logMessage( String msg){
+		logException(msg,null,null);
 	}
 
 	private Logger() {
