@@ -6,7 +6,6 @@ public class SettingsException extends BasicException {
 
 	public SettingsException(final int value) {
 		super(value);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override

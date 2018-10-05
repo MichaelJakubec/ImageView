@@ -5,13 +5,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Point;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Stack;
@@ -30,8 +24,7 @@ import net.jakubec.view.history.MoveHistoryItem;
 import net.jakubec.view.listener.LayerEvent;
 import net.jakubec.view.listener.LayerSelectionListener;
 
-public class ImageFrame extends JInternalFrame implements MouseMotionListener, MouseListener,
-		KeyListener, LayerSelectionListener {
+public class ImageFrame extends JInternalFrame implements LayerSelectionListener {
 
 	private class ImagePainter extends JPanel {
 		private static final int RECT_SIZE = 5;
@@ -39,15 +32,15 @@ public class ImageFrame extends JInternalFrame implements MouseMotionListener, M
 		private void drawImageZoomed(Graphics g, int x, int y) {
 			int sHeight = getHeight();
 			int sWidth = getWidth();
-			double iHeight = 0; // The height of the drawn Image
-			double iWidth = 0; // The width of the drawn Image
+
+
 			double pWidth = workingWidth; // The width of the part of the
 			// Original image that can be shown on the screen
 			double pHeight = workingHeight; // The height of the part of the
 			// Original image that can be shown on the screen
 
-			iHeight = workingHeight * factor;
-			iWidth = workingWidth * factor;
+			double iHeight = workingHeight * factor; // The height of the drawn Image
+			double iWidth = workingWidth * factor; // The width of the drawn Image
 			if (iWidth > sWidth) {
 				pWidth = sWidth / iWidth * workingWidth;
 				iWidth = sWidth;
@@ -73,7 +66,7 @@ public class ImageFrame extends JInternalFrame implements MouseMotionListener, M
 				vBar.setVisible(false);
 
 			}
-			BufferedImage subImage = null;
+			BufferedImage subImage;
 			try {
 				subImage = img.getSubimage((int) (xMiddle + hBar.getValue() - pWidth / 2),
 						(int) (yMiddle + vBar.getValue() - pHeight / 2), (int) pWidth,
@@ -127,8 +120,8 @@ public class ImageFrame extends JInternalFrame implements MouseMotionListener, M
 			}
 			img = new BufferedImage(workingWidth, workingHeight, BufferedImage.TYPE_INT_ARGB);
 
-			for (int i = 0; i < plains.size(); i++) {
-				plains.get(i).draw(img.getGraphics());
+			for (BasicLayer plain : plains) {
+				plain.draw(img.getGraphics());
 			}
 			drawImageZoomed(g, x, y);
 
@@ -162,7 +155,7 @@ public class ImageFrame extends JInternalFrame implements MouseMotionListener, M
 
 	private EditPanel parent;
 
-	private ArrayList<BasicLayer> plains = new ArrayList<BasicLayer>();
+	private ArrayList<BasicLayer> plains = new ArrayList<>();
 
 	private Point start;
 
@@ -198,7 +191,7 @@ public class ImageFrame extends JInternalFrame implements MouseMotionListener, M
 
 	private void construct(EditPanel parent, BufferedImage img, String title) {
 		this.parent = parent;
-		history = new Stack<HistoryItem>();
+		history = new Stack<>();
 		plains.add(new ImageLayer(img));
 
 		if (title != null) {
@@ -206,25 +199,15 @@ public class ImageFrame extends JInternalFrame implements MouseMotionListener, M
 		}
 		Insets s = this.getInsets();
 		vBar = new JScrollBar(JScrollBar.VERTICAL, 0, 0, 0, 0);
-		vBar.addAdjustmentListener(new AdjustmentListener() {
-			@Override
-			public void adjustmentValueChanged(AdjustmentEvent arg0) {
-				repaint();
-			}
-		});
+		vBar.addAdjustmentListener(arg0 -> repaint());
 		hBar = new JScrollBar(JScrollBar.HORIZONTAL, 0, 0, 0, 0);
-		hBar.addAdjustmentListener(new AdjustmentListener() {
-			@Override
-			public void adjustmentValueChanged(AdjustmentEvent arg0) {
-				repaint();
-			}
-		});
+		hBar.addAdjustmentListener(arg0 -> repaint());
 		setVisible(true);
 		this
 				.setSize((int) (s.left + s.right + vBar.getPreferredSize().getWidth() + img
 						.getWidth()), (int) (s.top + s.bottom + hBar.getPreferredSize().getHeight()
 						+ img.getHeight() + 20));
-		// setVisible(false);
+
 		workingWidth = img.getWidth();
 		workingHeight = img.getHeight();
 		xMiddle = workingWidth / 2;
@@ -232,9 +215,57 @@ public class ImageFrame extends JInternalFrame implements MouseMotionListener, M
 		this.img = new BufferedImage(workingWidth, workingHeight, BufferedImage.TYPE_INT_ARGB);
 
 		painter = new ImagePainter();
-		painter.addKeyListener(this);
-		painter.addMouseMotionListener(this);
-		painter.addMouseListener(this);
+		painter.addKeyListener(new KeyAdapter() {
+		});
+		painter.addMouseMotionListener(new MouseMotionListener() {
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				ImageFrame.this.mouseDragged(e);
+			}
+
+			@Override
+			public void mouseMoved(MouseEvent e) {
+
+			}
+		});
+		painter.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				mousePressed = e.getPoint();
+				start = mousePressed;
+
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				switch (parent.getEditMode()) {
+					case MOVE:
+						MoveHistoryItem newHis = new MoveHistoryItem(plains.get(aktiveLayer),
+								(int) ((e.getX() - start.getX()) / factor),
+								(int) ((e.getY() - start.getY()) / factor));
+						history.push(newHis);
+						break;
+					case LINE:
+						Point startLine = screenToImageCoordinates(start);
+						Point endLine = screenToImageCoordinates(e.getPoint());
+						LineLayer newLayer = new LineLayer(startLine, endLine, EditPanel.foreground, 5);
+
+						HistoryItem item = new CreateLayerHistoryItem(newLayer, plains);
+						plains.add(newLayer);
+						history.add(item);
+						repaint();
+						parent.getLayerManager().doRepaint();
+						aktiveLayer = plains.size() - 1;
+						break;
+					default:
+						// do nothing
+
+				}
+
+				active = false;
+
+			}
+		});
 		painter.setBackground(Color.LIGHT_GRAY);
 		getContentPane().add(painter, BorderLayout.CENTER);
 
@@ -288,42 +319,16 @@ public class ImageFrame extends JInternalFrame implements MouseMotionListener, M
 		}
 	}
 
-	@Override
-	public void keyPressed(KeyEvent e) {
-		if (e.getKeyCode() == KeyEvent.VK_Z) {
-			if (e.isControlDown()) {
 
-			}
-		}
 
-	}
 
-	@Override
-	public void keyReleased(KeyEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void keyTyped(KeyEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
 
 	@Override
 	public void layerChanged(LayerEvent e) {
-		aktiveLayer = e.getLayerNumber();
-		painter.repaint();
-	}
-
-	@Override
-	public void mouseClicked(MouseEvent arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
-	@Override
-	public void mouseDragged(MouseEvent e) {
+	private void mouseDragged(MouseEvent e) {
 		EditPanel.EditMode m = parent.getEditMode();
 
 		switch (m) {
@@ -348,60 +353,9 @@ public class ImageFrame extends JInternalFrame implements MouseMotionListener, M
 
 	}
 
-	@Override
-	public void mouseEntered(MouseEvent arg0) {
-		// TODO Auto-generated method stub
 
-	}
 
-	@Override
-	public void mouseExited(MouseEvent arg0) {
-		// TODO Auto-generated method stub
 
-	}
-
-	@Override
-	public void mouseMoved(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-		mousePressed = e.getPoint();
-		start = mousePressed;
-
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		switch (parent.getEditMode()) {
-		case MOVE:
-			MoveHistoryItem newHis = new MoveHistoryItem(plains.get(aktiveLayer),
-					(int) ((e.getX() - start.getX()) / factor),
-					(int) ((e.getY() - start.getY()) / factor));
-			history.push(newHis);
-			break;
-		case LINE:
-			Point startLine = screenToImageCoordinates(start);
-			Point endLine = screenToImageCoordinates(e.getPoint());
-			LineLayer newLayer = new LineLayer(startLine, endLine, EditPanel.foreground, 5);
-
-			HistoryItem item = new CreateLayerHistoryItem(newLayer, plains);
-			plains.add(newLayer);
-			history.add(item);
-			repaint();
-			parent.getLayerManager().doRepaint();
-			aktiveLayer = plains.size() - 1;
-			break;
-		default:
-			// do nothing
-
-		}
-
-		active = false;
-
-	}
 
 	private Point screenToImageCoordinates(Point enter) {
 		int x, y;
@@ -417,7 +371,6 @@ public class ImageFrame extends JInternalFrame implements MouseMotionListener, M
 		} else {
 			x = (int) ((sWidth - workingWidth * factor) / 2.0);
 			xImgStart = 0;
-			pWidth = workingWidth;
 		}
 		if (workingHeight * factor > sHeight) {
 			y = 0;

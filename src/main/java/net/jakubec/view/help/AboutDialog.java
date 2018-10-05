@@ -67,7 +67,6 @@ public class AboutDialog extends JDialog {
 
 		@Override
 		public void mouseDragged(final MouseEvent e) {
-			// TODO Auto-generated method stub
 
 		}
 

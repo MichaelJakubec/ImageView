@@ -95,6 +95,9 @@ public class MenuListener implements ActionListener {
 					StringTokenizer st = new StringTokenizer(image, ".");
 					try {
 						st.nextToken();
+						if (!st.hasMoreTokens()) {
+							continue;
+						}
 						String shelper = st.nextToken();
 						int start = ImageView.FILETYPES.indexOf(shelper.toLowerCase());
 						if (start != -1) {
@@ -129,32 +132,10 @@ public class MenuListener implements ActionListener {
 				panel.rotateImage(false);
 			} else if (eventCode.equals("saveAs")) {
 				panel.saveAs();
-				// try {
-				// // File save = ImageSaver.saveAs(origin, VSettings
-				// // .loadSetting("current.dir"));
-				// // if (save != null) {
-				// // openImage(save);
-				// // }
-				// } catch (IOException e) {
-				// e.printStackTrace();
-				// }
 			} else if (eventCode.equals("save")) {
 				panel.save();
-				// try {
-				// File save = ImageSaver.save(origin, VSettings
-				// .loadSetting("current.dir"), VSettings
-				// .loadSetting("current.image"));
-				// if (save != null) {
-				// openImage(save);
-				// }
-				// } catch (IOException e) {
-				// // TODO Auto-generated catch block
-				// e.printStackTrace();
-				// }
 			} else if (eventCode.equals("mike")) {
-
 				Application.getMainWindow().showEditMode();
-
 			} else if (eventCode.equals("full")) {
 				panel.fullImage();
 			} else if (eventCode.equals("settings")) {

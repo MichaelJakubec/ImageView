@@ -16,30 +16,30 @@ public class Settings<T> {
 	 * is the directory where the last displayed image of the view mode is
 	 * stored.
 	 */
-	public static Settings<File> currentDirectory = new Settings<File>("current.dir", File.class,
+	public static Settings<File> currentDirectory = new Settings<>("current.dir", File.class,
 			new File(System.getProperty("user.home")));
 	/**
 	 * the setting where the current image is saved. The current image is the
 	 * last displayed image in the view mode.
 	 */
-	public static Settings<File> currentImage = new Settings<File>("current.image", File.class,
+	public static Settings<File> currentImage = new Settings<>("current.image", File.class,
 			new File(""));
 	/**
 	 * stores the last directory from where an image is added to the diashow.
 	 */
-	public static Settings<File> diaDirectory = new Settings<File>("dia.dir", File.class, new File(
+	public static Settings<File> diaDirectory = new Settings<>("dia.dir", File.class, new File(
 			System.getProperty("user.home")));
 	/**
 	 * stores the current active language
 	 */
-	public static Settings<String> language = new Settings<String>("settings.language",
+	public static Settings<String> language = new Settings<>("settings.language",
 			String.class, "en");
 
 	/**
 	 * stores if the program should update automatically.
 	 */
-	public static Settings<Boolean> automaticUpdate = new Settings<Boolean>("settings.autoUpdate",
-			Boolean.class, new Boolean(true));
+	static Settings<Boolean> automaticUpdate = new Settings<>("settings.autoUpdate",
+			Boolean.class, true);
 
 	/**
 	 * the key in the settings.properties file
@@ -89,8 +89,7 @@ public class Settings<T> {
 			if (!f.exists()) return defaultValue;
 			return (T) f;
 		} else if (clazz.equals(Boolean.class)) {
-			Boolean bool = new Boolean(ret);
-
+			Boolean bool = Boolean.valueOf(ret);
 			return (T) bool;
 		}
 		return (T) ret;

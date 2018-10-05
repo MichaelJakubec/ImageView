@@ -81,14 +81,7 @@ public final class PluginOrganizer {
 			Class cl = pluginLoader.loadClass("image.plugin.MyPlugin");
 			ViewPlugin plug = (ViewPlugin) cl.newInstance();
 			plugins.add(plug);
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 			e.printStackTrace();
 		}
 

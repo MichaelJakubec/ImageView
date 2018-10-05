@@ -8,7 +8,6 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -34,7 +33,6 @@ public class SettingsDialog extends JDialog implements ActionListener {
 
 		@Override
 		public boolean isBorderOpaque() {
-			// TODO Auto-generated method stub
 			return false;
 		}
 
@@ -47,9 +45,9 @@ public class SettingsDialog extends JDialog implements ActionListener {
 
 	}
 
-	ArrayList<VAbstractSettingsPanel> panels = new ArrayList<VAbstractSettingsPanel>();
+	private ArrayList<VAbstractSettingsPanel> panels = new ArrayList<>();
 
-	JTabbedPane tabs = new JTabbedPane();
+	private JTabbedPane tabs = new JTabbedPane();
 
 	public SettingsDialog() {
 		super();
@@ -81,7 +79,7 @@ public class SettingsDialog extends JDialog implements ActionListener {
 	public void actionPerformed(final ActionEvent e) {
 		if (e.getActionCommand().equals("ok")) {
 			for (VAbstractSettingsPanel v : panels) {
-				v.onOkey();
+				v.onOkay();
 			}
 		}
 		this.setVisible(false);
@@ -127,25 +125,19 @@ public class SettingsDialog extends JDialog implements ActionListener {
 
 	private void readList() {
 		panels.add(new DefaultSettingsPanel());
-		Iterator<ViewPlugin> it = PluginOrganizer.getInstance().getPlugins().iterator();
-		while (it.hasNext()) {
-
-			panels.add(it.next().getSettingsPanel());
+		for (ViewPlugin viewPlugin : PluginOrganizer.getInstance().getPlugins()) {
+			panels.add(viewPlugin.getSettingsPanel());
 		}
 
 	}
 
 	private void setupPanels() {
-		Runnable r = new Runnable() {
+		SwingUtilities.invokeLater( () -> {
+			for (VAbstractSettingsPanel v : panels) {
+				v.onSetup();
 
-			public void run() {
-				for (VAbstractSettingsPanel v : panels) {
-					v.onSetup();
-
-				}
 			}
-		};
-		SwingUtilities.invokeLater(r);
+		});
 
 	}
 }

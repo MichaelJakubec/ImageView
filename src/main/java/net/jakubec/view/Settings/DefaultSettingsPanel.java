@@ -6,7 +6,6 @@ import java.util.Locale;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 
-import net.jakubec.view.gui.basic.CompoundIcon;
 import net.jakubec.view.plugin.VAbstractSettingsPanel;
 import net.jakubec.view.properties.VProperties;
 
@@ -16,24 +15,23 @@ public class DefaultSettingsPanel extends VAbstractSettingsPanel {
 
 	@Override
 	public Icon getIcon() {
-		// TODO Auto-generated method stub
+		// we return null as we do not want an icon to be displayed
 		return null;
 	}
 
 	@Override
 	public String getInfoText() {
-		// TODO Auto-generated method stub
-		return null;
+
+		return "";
 	}
 
 	@Override
 	public String getTitle() {
-		// TODO Auto-generated method stub
 		return VProperties.getValue("settings.appearence");
 	}
 
 	@Override
-	public void onOkey() {
+	public void onOkay() {
 
 		Settings.language.save(localisation.getSelection().getActionCommand());
 		Settings.automaticUpdate.save(automaticUpdate.isSelected());

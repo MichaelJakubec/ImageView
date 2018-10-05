@@ -7,6 +7,8 @@ import net.jakubec.view.exception.VExceptionHandler;
 import net.jakubec.view.plugin.PluginClassLoader;
 import net.jakubec.view.plugin.PluginOrganizer;
 
+import javax.swing.*;
+
 /**
  * This is the entry point and main Class of this programm.
  * 
@@ -39,6 +41,13 @@ public class Application {
 			PluginClassLoader loader = new PluginClassLoader();
 			System.setSecurityManager(new ViewSecurityManager(loader));
 			PluginOrganizer.getInstance(loader);
+
+			try {
+				UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
 			if (args.length == 1) {
 				if (args[0].startsWith("-")) {
 					if (args[0].equals("--edit") || args[0].equals("-e")) {
@@ -48,10 +57,8 @@ public class Application {
 						printUsage();
 					}
 				} else {
-					view = new ImageView();
-					view.open(args[0]);
+					view = new ImageView(args[0]);
 				}
-
 			} else if (args.length > 1) {
 				view = new ImageView();
 			} else {

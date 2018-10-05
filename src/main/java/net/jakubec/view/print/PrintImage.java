@@ -29,7 +29,6 @@ public class PrintImage implements Printable {
 
 	@Override
 	public int print(final Graphics g, final PageFormat pf, final int page) throws PrinterException {
-		// TODO Auto-generated method stub
 		Graphics2D g2d = (Graphics2D) g;
 		if (page > 0) return NO_SUCH_PAGE;
 

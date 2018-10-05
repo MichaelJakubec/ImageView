@@ -11,10 +11,10 @@ public abstract class VAbstractSettingsPanel extends JPanel{
 	 */
 	public abstract void onSetup();
 	/**
-	 * Is called when Okey is pressed
+	 * Is called when okay is pressed
 	 * Everything which should be stored should happen here
 	 */
-	public abstract void onOkey();
+	public abstract void onOkay();
 	/**
 	 * returns the Title of this SettingsTab.
 	 * if null or "" is returned the tab is not displayed in the SettingsDialog
@@ -26,7 +26,11 @@ public abstract class VAbstractSettingsPanel extends JPanel{
 	 * @return the icon of the Tab
 	 */
 	public abstract Icon getIcon();
-	
+
+	/**
+	 * returns an tool tip text for this panel
+	 * @return the tool tip text to be displayed
+	 */
 	public abstract String getInfoText();
 	
 }

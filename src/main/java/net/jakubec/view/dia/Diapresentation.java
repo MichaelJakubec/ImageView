@@ -1,8 +1,8 @@
 package net.jakubec.view.dia;
 
 import net.jakubec.view.ImageView;
-import net.jakubec.view.Settings.Settings;
 import net.jakubec.view.Settings.VSettings;
+import net.jakubec.view.ViewPanel;
 import net.jakubec.view.log.Logger;
 
 import javax.imageio.ImageIO;
@@ -26,14 +26,6 @@ import java.util.Random;
  */
 public class Diapresentation extends JWindow implements KeyListener {
 	/**
-	 * the height of the monitor
-	 */
-	private final int height;
-	/**
-	 * the width of the monitor
-	 */
-	private final int width;
-	/**
 	 * The time to wait till the next image
 	 */
 	private final int wait;
@@ -42,21 +34,19 @@ public class Diapresentation extends JWindow implements KeyListener {
 	/**
 	 * boolean if the pictures should be displayerd in random order
 	 */
-	private boolean zufall = false;
+	private boolean zufall;
 
 	private boolean opened = true;
 	/**
 	 * checks if an Image should be displayed again or not in random mode
 	 */
-	private boolean delrandom = true;
+	private boolean delrandom;
 
 
-	private final Container cp;
-	private BufferedImage img = new BufferedImage(1, 1, 1);
+	private ViewPanel panel = new ViewPanel(false);
 	private BufferedImage nextImg = new BufferedImage(1, 1, 1);
-	private Thread thread;
 
-	private static JFrame frame = new JFrame();
+
 	private final ImageView view;
 
 
@@ -65,24 +55,24 @@ public class Diapresentation extends JWindow implements KeyListener {
 
 	public Diapresentation(final ImageView view, final ArrayList<File> list,
 						   final boolean zufall, final boolean delrand, final int wait) {
-		super(frame);
+		super(view);
 
-		cp = this.getContentPane();
+		this.setContentPane(this.panel);
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice[] gs = ge.getScreenDevices();
 		this.setSize(gs[0].getDisplayMode().getWidth(), gs[0].getDisplayMode().getHeight());
 
-		cp.setBackground(Color.black);
+
 		setBackground(Color.black);
 		this.setFocusable(true);
 		this.view = view;
 		this.zufall = zufall;
-		frame.addKeyListener(this);
+		view.addKeyListener(this);
 		this.addFocusListener(new FocusListener() {
 
 			@Override
 			public void focusGained(final FocusEvent arg0) {
-				frame.requestFocus();
+				view.requestFocus();
 			}
 
 			@Override
@@ -92,10 +82,8 @@ public class Diapresentation extends JWindow implements KeyListener {
 
 		});
 		delrandom = delrand;
-		height = getHeight();
-		width = getWidth();
 		this.list = new ImageList(list);
-		frame.setVisible(true);
+		// view.setVisible(true);
 		this.setVisible(true);
 		nextPhoto();
 		if (wait != -1) {
@@ -111,37 +99,7 @@ public class Diapresentation extends JWindow implements KeyListener {
 	}
 
 	private void drawPhoto() {
-
-		double iHeight = nextImg.getHeight();
-		double iWidth = nextImg.getWidth();
-		double hFactor = 1.0;
-		double wFactor = 1.0;
-
-		if (width >= nextImg.getWidth() && height >= nextImg.getHeight()) {
-			img = nextImg;
-		} else {
-			if (width < nextImg.getWidth()) {
-				wFactor = width / (double) nextImg.getWidth();
-				iWidth = width;
-			}
-			if (height < nextImg.getHeight()) {
-				hFactor = height / (double) nextImg.getHeight();
-				iHeight = height;
-			}
-
-			if (wFactor < hFactor) {
-				iHeight = nextImg.getHeight() * wFactor;
-			} else if (hFactor < wFactor) {
-				iWidth = nextImg.getWidth() * hFactor;
-			}
-			img = new BufferedImage((int) iWidth, (int) iHeight, BufferedImage.TYPE_INT_ARGB);
-			// img=new BufferedImage((int)iWidth,(int)iHeight,origin.getType());
-			Graphics2D g2d = img.createGraphics();
-			g2d.drawImage(nextImg, 0, 0, (int) Math.round(iWidth), (int) Math.round(iHeight), null);
-		}
-
-		cp.repaint();
-		repaint();
+		this.panel.setImage(this.nextImg);
 	}
 
 	public void keyPressed(final KeyEvent event) {
@@ -155,7 +113,7 @@ public class Diapresentation extends JWindow implements KeyListener {
 					if (this.countDown == null) {
 						newThread();
 					} else {
-						pauseCountDown();
+						stopThread();
 					}
 				} else {
 					nextPhoto();
@@ -176,20 +134,27 @@ public class Diapresentation extends JWindow implements KeyListener {
 					drawPhoto();
 				} else {
 					stopDia();
-					return;
 				}
 		}
 	}
 
+	private void stopThread() {
+		if (this.countDown != null) {
+			this.countDown.stop();
+			this.countDown = null;
+		}
+	}
+
 	private void nextPhoto() {
-		try {
-			File file = this.list.nextPhoto();
-			if (file != null) {
+		File file = this.list.nextPhoto();
+		if (file != null) {
+			try {
 				this.nextImg = ImageIO.read(file);
+			} catch (IOException e) {
+				System.out.println(file + " can't be opened");
+				e.printStackTrace();
+				nextPhoto();
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			nextPhoto();
 		}
 	}
 
@@ -205,7 +170,7 @@ public class Diapresentation extends JWindow implements KeyListener {
 		}
 	}
 
-	public void pauseCountDown() {
+	private void pauseCountDown() {
 		if (countDown != null) {
 			countDown.cancel();
 		}
@@ -219,62 +184,38 @@ public class Diapresentation extends JWindow implements KeyListener {
 
 	}
 
-	public void newThread() {
+	private void newThread() {
 		Logger.logMessage("Thread start");
 		this.countDown = new CountDown();
-		thread = new Thread(this.countDown);
+		Thread thread = new Thread(this.countDown);
 		thread.start();
-	}
-
-
-	@Override
-	public void paint(final Graphics g) {
-		super.paint(g);
-
-		try {
-			g.drawImage(img, (width - img.getWidth()) / 2 + getInsets().left,
-					(height - img.getHeight()) / 2 + getInsets().top, null);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 
 	private void stopDia() {
 		Logger.logMessage("stopDia");
 		this.pauseCountDown();
-		if (this.countDown != null) {
-			this.countDown.stop();
-		}
+		stopThread();
 
 		VSettings.saveProps();
 
 		setVisible(false);
-		frame.setVisible(false);
-		frame.dispose();
+		view.removeKeyListener(this);
 		dispose();
 		view.setVisible(true);
-		Thread t = new Thread() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				view.repaint();
+		Thread t = new Thread(() -> {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
-		};
+			view.repaint();
+		});
 		t.start();
 		view.showViewMode();
-		view.open(Settings.currentImage.load());
 		view.repaint();
 	}
 
-	private void switchImage() {
-
-	}
 
 	private class ImageList {
 
@@ -358,33 +299,34 @@ public class Diapresentation extends JWindow implements KeyListener {
 
 	private class CountDown implements Runnable {
 		private volatile boolean run = true;
-		private volatile boolean stop = false;
 		private long start;
 
-		public void cancel() {
+		void cancel() {
 			start = System.currentTimeMillis();
 		}
 
-		public void stop() {
+		void stop() {
 			this.run = false;
 		}
 
+		@Override
 		public void run() {
 
 			repaint();
-			int nextWait = wait;
+
 
 			while (run) {
 				drawPhoto();
 				start = System.currentTimeMillis();
 				nextPhoto();
 				long end = System.currentTimeMillis();
-				nextWait = wait - (int) (end - start);
+				int nextWait = wait - (int) (end - start);
 				while (nextWait > 0) {
 					try {
 						Logger.logMessage("Sleep " + nextWait);
 						Thread.sleep(nextWait);
 					} catch (InterruptedException IE) {
+						//Ignore exception
 					}
 					end = System.currentTimeMillis();
 					nextWait = wait - (int) (end - start);

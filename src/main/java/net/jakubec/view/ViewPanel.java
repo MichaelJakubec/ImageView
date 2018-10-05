@@ -103,6 +103,9 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	 * Constructor for a new ViewPanel
 	 */
 	public ViewPanel() {
+		this(true);
+	}
+	public ViewPanel(boolean showToolbar){
 		setLayout(new BorderLayout());
 		addMouseListener(this);
 		addMouseMotionListener(this);
@@ -115,7 +118,9 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 		imp = new ImagePainter();
 		this.add(imp, BorderLayout.CENTER);
 		cp = this;
-		cp.add(MenuFactory.newMenuBar( new MenuListener(this)), BorderLayout.NORTH);
+		if (showToolbar) {
+			cp.add(MenuFactory.newMenuBar(new MenuListener(this)), BorderLayout.NORTH);
+		}
 		addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(final ComponentEvent e) {
@@ -306,7 +311,7 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 
 	@Override
 	public void mouseClicked(final MouseEvent e) {
-		// Nothing todo
+		// Nothing to do
 	}
 
 	@Override
@@ -322,19 +327,19 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 
 	@Override
 	public void mouseEntered(final MouseEvent e) {
-		// Nothing todo
+		// Nothing to do
 
 	}
 
 	@Override
 	public void mouseExited(final MouseEvent e) {
-		// nothing todo
+		// nothing to do
 
 	}
 
 	@Override
 	public void mouseMoved(final MouseEvent arg0) {
-		// Nothing todo
+		// Nothing to do
 	}
 
 	@Override
@@ -344,7 +349,7 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 
 	@Override
 	public void mouseReleased(final MouseEvent e) {
-		// nothing todo
+		// nothing to do
 
 	}
 

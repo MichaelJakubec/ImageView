@@ -32,8 +32,6 @@ public class EditPanel extends JDesktopPane implements BasicPanel {
 
 	public EditMode mode;
 
-	private BufferedImage origin;
-
 	public EditPanel() {
 		super();
 		VToolBox toolBox = new VToolBox(this);
@@ -41,18 +39,18 @@ public class EditPanel extends JDesktopPane implements BasicPanel {
 
 			@Override
 			public void keyPressed(final KeyEvent e) {
-				activeFrame.keyPressed(e);
+			//TODO compile error	activeFrame.keyPressed(e);
 
 			}
 
 			@Override
 			public void keyReleased(final KeyEvent e) {
-				activeFrame.keyReleased(e);
+				// TODO compile error activeFrame.keyReleased(e);
 			}
 
 			@Override
 			public void keyTyped(final KeyEvent e) {
-				activeFrame.keyTyped(e);
+				// TODO compile error activeFrame.keyTyped(e);
 
 			}
 
@@ -66,12 +64,11 @@ public class EditPanel extends JDesktopPane implements BasicPanel {
 	@Override
 	public void delete() {
 		// TODO Auto-generated method stub
-
 	}
 
-	public void dohelp() {
-		layerManager.help();
-	}
+	// public void dohelp() {
+	//	layerManager.help();
+	// }
 
 	@Override
 	public void fullImage() {
@@ -79,31 +76,25 @@ public class EditPanel extends JDesktopPane implements BasicPanel {
 
 	}
 
-	public EditMode getEditMode() {
+	EditMode getEditMode() {
 		return mode;
 	}
 
-	public LayerFrame getLayerManager() {
+	LayerFrame getLayerManager() {
 		return layerManager;
 	}
 
 	@Override
 	public Container getPanel() {
-		// TODO Auto-generated method stub
 		return this;
 	}
 
 	@Override
 	public void openImage(final File image) {
-		// VSettings.saveStringSetting("current.dir", image.getParent());
-		// VSettings.saveStringSetting("current.image", image.getName());
-		String[] temp = image.getName().split("\\.");
-		// VSettings.saveStringSetting("current.filetype", temp[temp.length -
-		// 1]);
 
 		Application.getMainWindow().setTitle(VSettings.PROG_NAME);
 		try {
-			origin = ImageIO.read(image);
+			BufferedImage origin = ImageIO.read(image);
 			setImage(origin);
 		} catch (Exception e) {
 			VExceptionHandler.raiseException(e, "The file couldn't be opened");
@@ -142,13 +133,8 @@ public class EditPanel extends JDesktopPane implements BasicPanel {
 
 	@Override
 	public void setImage(final BufferedImage img) {
-		this.setImage(img, null);
-	}
-
-	public void setImage(final BufferedImage img, final String name) {
 		activeFrame = new ImageFrame(this, img);
 		this.add(activeFrame, 1);
-
 	}
 
 	@Override

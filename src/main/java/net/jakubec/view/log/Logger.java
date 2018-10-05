@@ -34,13 +34,9 @@ public class Logger {
 				e.printStackTrace();
 			}
 		}
-		//try {
-			//log.logStream = new FileOutputStream(logFile, true);
-			log.logStream = System.out;
-		//} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-		//	e.printStackTrace();
-		//}
+
+		log.logStream = System.out;
+
 
 		DataOutputStream out = new DataOutputStream(log.logStream);
 		StringBuilder sb = new StringBuilder();
@@ -55,7 +51,6 @@ public class Logger {
 			out.writeBytes(sb.toString());
 			out.flush();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -85,7 +80,6 @@ public class Logger {
 			out.writeBytes(sb.toString());
 			out.flush();
 		} catch (IOException es) {
-			// TODO Auto-generated catch block
 			es.printStackTrace();
 		}
 
@@ -104,7 +98,6 @@ public class Logger {
 		try {
 			logStream.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

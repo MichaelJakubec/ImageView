@@ -6,10 +6,7 @@ import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.util.Locale;
 
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.UIManager;
+import javax.swing.*;
 
 import net.jakubec.view.Settings.Settings;
 import net.jakubec.view.Settings.VSettings;
@@ -28,10 +25,7 @@ public class ImageView extends JFrame {
 	public static final String FILETYPES = "jpg.gif.png.bmp";
 	private static final long serialVersionUID = -4865378884812046578L;
 
-	/**
-	 * The current View of the Programm
-	 */
-	private BasicPanel currentView;
+
 	/**
 	 * The MenuListener
 	 */
@@ -42,7 +36,15 @@ public class ImageView extends JFrame {
 	 * Creates a new ImageView-Frame
 	 */
 	ImageView() {
+		this(null);
 
+	}
+
+	/**
+	 * Constructor of a new ImageView with the given path to be displayed
+	 * @param filePath path to the file which should be displayed
+	 */
+	public ImageView(String filePath) {
 		super(VSettings.PROG_NAME);
 		Logger.init();
 		try {
@@ -57,34 +59,24 @@ public class ImageView extends JFrame {
 		this.setLocation(0, 0);
 		this.setSize(gs[0].getDisplayMode().getWidth(), gs[0].getDisplayMode().getHeight());
 
-		// LookAndFell wird auf Nimbus gestezt
-		try {
-			UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+		// LookAndFeel wird auf Nimbus gestezt
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 		// Aufruf zum setzten des Menüs
 		addWindowListener(new WindowClosingAdapter(true));
-		showViewMode();
+		if (filePath != null ){
+			File f = new File(filePath);
+			if (f.exists()) {
+				showViewMode(f);
+			} else {
+				showViewMode();
+			}
+		} else {
+			showViewMode();
+		}
+
 		this.setIconImage(new ImageIcon(ImageView.class.getResource("/icon.gif")).getImage());
 	}
 
-
-	public void open(final File file) {
-		currentView.openImage(file);
-	}
-
-	/**
-	 * opens a new File in the current View specified by the path given as
-	 * parameter
-	 * 
-	 * @param file
-	 *            the path to the file that should be opened
-	 */
-	public void open(final String file) {
-		open(new File(file));
-	}
 
 	@Override
 	public void setTitle(final String title) {
@@ -96,45 +88,51 @@ public class ImageView extends JFrame {
 	 * shows the Diahow Mode
 	 */
 	public void showDiashowMode() {
-		currentView = new Diashow(this);
+		Diashow currentView = new Diashow(this);
 		this.setJMenuBar(null);
-		setContentPane(currentView.getPanel());
-		if (menuListener == null) {
-			menuListener = new MenuListener(currentView);
-		} else {
-			menuListener.setCurrentPanel(currentView);
-		}
-		((JPanel) currentView).revalidate();
-		this.repaint();
-
+		SwingUtilities.invokeLater(() ->setContentPane(currentView));
 	}
 
 	/**
 	 * show the Edit Mode
 	 */
 	public void showEditMode() {
-		currentView = new EditPanel();
+		EditPanel editPanel = new EditPanel();
+		Container currentView = editPanel.getPanel();
 		setJMenuBar(MenuFactory.createEditMenu(menuListener));
-		setContentPane(currentView.getPanel());
-		menuListener.setCurrentPanel(currentView);
+		setContentPane(currentView);
+		menuListener.setCurrentPanel(editPanel);
 		this.repaint();
 
 	}
 
 	/**
+	 * show the image view mode and opens the given image
+	 * @param f the image to be displayed
+	 */
+	private void showViewMode(File f) {
+		ViewPanel viewPanel = new ViewPanel();
+		if (f != null) {
+			viewPanel.openImage(f);
+		}
+		Container currentView = viewPanel.getPanel();
+
+		setContentPane(currentView);
+		if (menuListener == null) {
+			menuListener = new MenuListener(viewPanel);
+		} else {
+			menuListener.setCurrentPanel(viewPanel);
+		}
+		setJMenuBar(MenuFactory.createMenu(menuListener));
+	}
+
+
+
+	/**
 	 * shows the edit Mode
 	 */
 	public void showViewMode() {
-
-		currentView = new ViewPanel();
-
-		setContentPane(currentView.getPanel());
-		if (menuListener == null) {
-			menuListener = new MenuListener(currentView);
-		} else {
-			menuListener.setCurrentPanel(currentView);
-		}
-		setJMenuBar(MenuFactory.createMenu(menuListener));
+		showViewMode(null);
 	}
 
 	/**

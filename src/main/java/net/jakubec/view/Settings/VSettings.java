@@ -64,7 +64,6 @@ public final class VSettings {
 
 			System.out.println("Properties saved");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (Exception re) {
 			SettingsException e = new SettingsException(1);
