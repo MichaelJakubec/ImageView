@@ -156,13 +156,13 @@ public class MenuFactory {
 
 		/* Plugin Menus inserted */
 		menu = new JMenu(VProperties.getValue("menu.plugin"));
-		List<ViewPlugin> plugins = PluginOrganizer.getInstance().getPlugins();
-		for (ViewPlugin plug : plugins) {
-			JMenu pluginMenu = new JMenu(plug.getName());
-			createMenuItem(pluginMenu, "Start", '\0', "plug-" + plug.getName(), act);
-			pluginMenu.add(plug.getMenu());
-			menu.add(pluginMenu);
-		}
+//		List<ViewPlugin> plugins = PluginOrganizer.getInstance().getPlugins();
+//		for (ViewPlugin plug : plugins) {
+//			JMenu pluginMenu = new JMenu(plug.getName());
+//			createMenuItem(pluginMenu, "Start", '\0', "plug-" + plug.getName(), act);
+//			pluginMenu.add(plug.getMenu());
+//			menu.add(pluginMenu);
+//		}
 		if (menu.getMenuComponentCount() > 0) {
 			menubar.add(menu);
 		}

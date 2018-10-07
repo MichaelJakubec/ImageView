@@ -38,9 +38,9 @@ public class Application {
 	 */
 	public static void main(final String[] args) {
 		try {
-			PluginClassLoader loader = new PluginClassLoader();
-			System.setSecurityManager(new ViewSecurityManager(loader));
-			PluginOrganizer.getInstance(loader);
+//			PluginClassLoader loader = new PluginClassLoader();
+//			System.setSecurityManager(new ViewSecurityManager(loader));
+//			PluginOrganizer.getInstance(loader);
 
 			try {
 				UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
@@ -60,7 +60,7 @@ public class Application {
 					view = new ImageView(args[0]);
 				}
 			} else if (args.length > 1) {
-				view = new ImageView();
+				view = new ImageView(args[0]);
 			} else {
 				view = new ImageView();
 			}

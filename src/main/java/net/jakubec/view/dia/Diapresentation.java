@@ -3,7 +3,8 @@ package net.jakubec.view.dia;
 import net.jakubec.view.ImageView;
 import net.jakubec.view.Settings.VSettings;
 import net.jakubec.view.ViewPanel;
-import net.jakubec.view.log.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -30,6 +31,8 @@ public class Diapresentation extends JWindow implements KeyListener {
 	 */
 	private final int wait;
 	private final ImageList list;
+
+	private static final Logger log = LogManager.getLogger(Diapresentation.class);
 
 	/**
 	 * boolean if the pictures should be displayerd in random order
@@ -185,7 +188,7 @@ public class Diapresentation extends JWindow implements KeyListener {
 	}
 
 	private void newThread() {
-		Logger.logMessage("Thread start");
+		log.debug("Thread start");
 		this.countDown = new CountDown();
 		Thread thread = new Thread(this.countDown);
 		thread.start();
@@ -193,7 +196,7 @@ public class Diapresentation extends JWindow implements KeyListener {
 
 
 	private void stopDia() {
-		Logger.logMessage("stopDia");
+		log.debug("stopDia");
 		this.pauseCountDown();
 		stopThread();
 
@@ -243,7 +246,7 @@ public class Diapresentation extends JWindow implements KeyListener {
 		synchronized File nextPhoto() {
 			if (previous >=  0) {
 				File photo = shownImages.get(previous--);
-				Logger.logMessage("Show Previous Photo:" + previous + " " + photo.getName());
+				log.debug("Show Previous Photo: {} {}", previous, photo.getName());
 				return photo;
 			}
 			File nextFile;
@@ -257,7 +260,7 @@ public class Diapresentation extends JWindow implements KeyListener {
 				return null;
 			}
 			this.shownImages.add(0, nextFile);
-			Logger.logMessage("nextImage: " + nextFile.getName() + " " + shownImages.size());
+			log.debug("nextImage: {} {}", nextFile.getName(), shownImages.size());
 
 			if (nextImg == null) {
 				return nextPhoto();
@@ -288,7 +291,7 @@ public class Diapresentation extends JWindow implements KeyListener {
 				stopDia();
 				return null;
 			}
-			Logger.logMessage("New Random picture");
+			log.debug("New Random picture");
 			picture = r.nextInt(list.size());
 			opened = false;
 
@@ -323,7 +326,7 @@ public class Diapresentation extends JWindow implements KeyListener {
 				int nextWait = wait - (int) (end - start);
 				while (nextWait > 0) {
 					try {
-						Logger.logMessage("Sleep " + nextWait);
+						log.debug("Sleep " + nextWait);
 						Thread.sleep(nextWait);
 					} catch (InterruptedException IE) {
 						//Ignore exception

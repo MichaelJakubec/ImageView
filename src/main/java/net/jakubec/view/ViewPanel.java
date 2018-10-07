@@ -1,29 +1,5 @@
 package net.jakubec.view;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-
-import javax.imageio.ImageIO;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-
 import net.jakubec.view.Settings.Settings;
 import net.jakubec.view.Settings.VSettings;
 import net.jakubec.view.dia.Diapresentation;
@@ -33,6 +9,15 @@ import net.jakubec.view.listener.MenuListener;
 import net.jakubec.view.menu.MenuFactory;
 import net.jakubec.view.properties.VProperties;
 import net.jakubec.view.save.ImageSaver;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener, MouseListener,
 		MouseMotionListener {
@@ -99,6 +84,8 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	 */
 	private int ymiddle = 0;
 
+	private final Refresher refresher = new Refresher();
+
 	/**
 	 * Constructor for a new ViewPanel
 	 */
@@ -124,7 +111,7 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 		addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(final ComponentEvent e) {
-				calcZoom();
+				calcZoom(true);
 			}
 		});
 		addMouseWheelListener(new MouseAdapter() {
@@ -144,20 +131,18 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 			if (files.length > 0) {
 				openImage(files[0]);
 			}
-
 		});
 	}
 
 	@Override
 	public void adjustmentValueChanged(final AdjustmentEvent e) {
-		calcZoom();
-
+		calcZoom(true);
 	}
 
 	/**
 	 * calculates the image with the current zoom factor
 	 */
-	private void calcZoom() {
+	private void calcZoom(boolean fast) {
 		sWidth = imp.getWidth();
 		sHeight = imp.getHeight();
 		if (sWidth == 0 || sHeight == 0 || origin == null) return;
@@ -217,6 +202,12 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 
 		Graphics2D g2d = img.createGraphics();
 		// Zeichnet das Orignial Bild skalliert
+		if (fast){
+			//g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+			refresher.startRefresh();
+		} else {
+			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+		}
 		g2d.drawImage(subImage, 0, 0, (int) Math.round(iWidth), (int) Math.round(iHeight), null);
 		cp.repaint();
 
@@ -240,6 +231,8 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 		}
 
 	}
+
+
 
 	/**
 	 * Draws the Image
@@ -322,6 +315,8 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 		hBar.setValue((int) (hBar.getValue() - divX * 1.0 / factor));
 		vBar.setValue((int) (vBar.getValue() - divY * 1.0 / factor));
 		oldEvent = e;
+
+		calcZoom(true);
 
 	}
 
@@ -458,13 +453,12 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 		vBar.setVisible(false);
 		this.revalidate();
 		drawImage(origin);
-
 	}
 
 	@Override
 	public void zoom1() {
 		factor = 1;
-		calcZoom();
+		calcZoom(false);
 
 	}
 
@@ -486,9 +480,9 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 		if (factor <= 0.009) {
 			factor = 0.01;
 		}
-		calcZoom();
-
+		calcZoom(true);
 	}
+
 
 	@Override
 	public void zoomp() {
@@ -503,7 +497,63 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 		} else {
 			factor += 0.2;
 		}
-		calcZoom();
+		calcZoom(true);
+
+	}
+
+
+	private class Refresher {
+		private final Object lock = new Object();
+
+		private static final int WAIT = 100;
+
+		private long start;
+
+		private boolean run;
+
+		void startRefresh(){
+			synchronized (lock) {
+				start = System.currentTimeMillis();
+				if (!run){
+					run = true;
+					new Thread(this::run).start();
+				}
+			}
+		}
+
+		private void run(){
+			try {
+				Thread.sleep(WAIT);
+
+			boolean doContinue = true;
+			do {
+				long now = System.currentTimeMillis();
+				long sleep;
+				synchronized (lock) {
+					sleep = now - (start + WAIT);
+					if (sleep - 5 < 0) {
+						doContinue = false;
+						run = false;
+					}
+				}
+					if (sleep > 0){
+						Thread.sleep(sleep);
+					}
+
+			}while(doContinue);
+				SwingUtilities.invokeLater(() ->	calcZoom(false));
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				synchronized (lock) {
+					run = false;
+				}
+			}
+
+
+		}
+
+
+
 
 	}
 

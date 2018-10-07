@@ -1,26 +1,25 @@
 package net.jakubec.view;
 
-import java.awt.Container;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.io.File;
-import java.util.Locale;
-
-import javax.swing.*;
-
 import net.jakubec.view.Settings.Settings;
 import net.jakubec.view.Settings.VSettings;
 import net.jakubec.view.dia.Diashow;
 import net.jakubec.view.edit.EditPanel;
 import net.jakubec.view.exception.VExceptionHandler;
 import net.jakubec.view.listener.MenuListener;
-import net.jakubec.view.log.Logger;
 import net.jakubec.view.menu.MenuFactory;
 import net.jakubec.view.plugin.PluginOrganizer;
 import net.jakubec.view.plugin.ViewPanelPlugin;
 import net.jakubec.view.plugin.ViewPlugin;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.util.Locale;
 
 public class ImageView extends JFrame {
+	private static final Logger log = LogManager.getLogger(ImageView.class);
 
 	public static final String FILETYPES = "jpg.gif.png.bmp";
 	private static final long serialVersionUID = -4865378884812046578L;
@@ -42,12 +41,15 @@ public class ImageView extends JFrame {
 
 	/**
 	 * Constructor of a new ImageView with the given path to be displayed
+	 *
 	 * @param filePath path to the file which should be displayed
 	 */
 	public ImageView(String filePath) {
 		super(VSettings.PROG_NAME);
-		Logger.init();
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		try {
+			String language = Settings.language.load();
+			log.debug("Language is set to: {}", language);
 			Locale.setDefault(new Locale(Settings.language.load()));
 
 		} catch (Exception e) {
@@ -61,9 +63,9 @@ public class ImageView extends JFrame {
 
 		// LookAndFeel wird auf Nimbus gestezt
 
-		// Aufruf zum setzten des Menüs
-		addWindowListener(new WindowClosingAdapter(true));
-		if (filePath != null ){
+
+
+		if (filePath != null) {
 			File f = new File(filePath);
 			if (f.exists()) {
 				showViewMode(f);
@@ -90,7 +92,7 @@ public class ImageView extends JFrame {
 	public void showDiashowMode() {
 		Diashow currentView = new Diashow(this);
 		this.setJMenuBar(null);
-		SwingUtilities.invokeLater(() ->setContentPane(currentView));
+		SwingUtilities.invokeLater(() -> setContentPane(currentView));
 	}
 
 	/**
@@ -108,6 +110,7 @@ public class ImageView extends JFrame {
 
 	/**
 	 * show the image view mode and opens the given image
+	 *
 	 * @param f the image to be displayed
 	 */
 	private void showViewMode(File f) {
@@ -127,7 +130,6 @@ public class ImageView extends JFrame {
 	}
 
 
-
 	/**
 	 * shows the edit Mode
 	 */
@@ -138,9 +140,8 @@ public class ImageView extends JFrame {
 	/**
 	 * This Method starts the plugin and checks if it uses a own Frame or should
 	 * be inserted in the
-	 * 
-	 * @param pluginName
-	 *            the Name of the Plugin which should be started
+	 *
+	 * @param pluginName the Name of the Plugin which should be started
 	 */
 	public void startPlugin(final String pluginName) {
 		ViewPlugin plugin = null;

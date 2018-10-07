@@ -14,7 +14,8 @@ public abstract class BasicException extends Exception {
 			try {
 				bundle = ResourceBundle.getBundle(BASE_NAME, Locale.ENGLISH);
 			} catch (Exception e2) {
-				VExceptionHandler.raiseException(e2, "ResourceFileNotFound");
+				e2.printStackTrace();
+				// VExceptionHandler.raiseException(e2, "ResourceFileNotFound");
 			}
 		}
 	}
