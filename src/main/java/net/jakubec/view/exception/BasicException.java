@@ -23,7 +23,8 @@ public abstract class BasicException extends Exception {
 
 	public final String text;
 
-	public BasicException(final int value) {
+	public BasicException(Exception e, final int value) {
+		super(e);
 		if (value == 0) {
 			errorValue = 0;
 			text = "Unknown Error";
@@ -36,6 +37,10 @@ public abstract class BasicException extends Exception {
 	public BasicException(final String msg) {
 		errorValue = 0;
 		text = msg;
+	}
+
+	public BasicException(int value) {
+		this(null, value);
 	}
 
 	public abstract String getBasicString();

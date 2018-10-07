@@ -1,13 +1,7 @@
 package net.jakubec.view.dia;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
+import java.awt.*;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Label;
 import java.awt.event.*;
 import java.io.File;
 import java.util.ArrayList;
@@ -32,9 +26,9 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import net.jakubec.view.Application;
 
-import net.jakubec.view.ImageView;
+import net.jakubec.view.ViewException;
+import net.jakubec.view.app.ImageView;
 import net.jakubec.view.Settings.Settings;
 import net.jakubec.view.ViewPanel;
 import net.jakubec.view.properties.VProperties;
@@ -112,154 +106,155 @@ public class Diashow extends JPanel implements ActionListener,
 	private final DefaultListModel<File> listmodel;
 	private final DefaultListModel<File> showmodel;
 	private int[] selectedindex;
-	private final ButtonGroup group;
-	private final JTextField autotime;
-	private final JTextField zufalltime;
-	private final JTextField dirPath;
-	private final JCheckBox delRandom;
+	private final ButtonGroup group = new ButtonGroup();
+	private final JTextField autotime  = new JTextField("5");
+	private final JTextField zufalltime  = new JTextField("5");
+	private final JTextField dirPath = new JTextField();
+	private final JCheckBox delRandom = new JCheckBox(VProperties.getValue("dia.delrand"));
 
 
 	private Diashow() {
 		super();
 		setBackground(Color.LIGHT_GRAY);
 
+		showmodel = new DefaultListModel<>();
+		showfiles = new JList<>(showmodel);
 
-		JButton bt = new JButton(VProperties.getValue("dia.search"));
-		bt.setActionCommand("search");
-		Label label = new Label("Suchen in:");
-		setLayout(new GridBagLayout());
-		GridBagConstraints c = new GridBagConstraints();
-		c.insets = new Insets(5, 5, 0, 5);
-		c.anchor = GridBagConstraints.LINE_END;
-		c.fill = GridBagConstraints.NONE;
-		c.gridx = 0;
-		c.gridy = 0;
-		c.gridwidth = 1;
-		c.gridheight = 1;
-		c.weightx = 0;
-		c.weighty = 0;
-		add(label, c);
-
-		bt.addActionListener(this);
-
-
-		c.anchor = GridBagConstraints.LINE_START;
-		c.gridx = 1;
-		c.gridy = 0;
-		add(bt, c);
-
-		c.anchor = GridBagConstraints.LINE_END;
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.gridx = 2;
-		c.gridy = 0;
-		dirPath = new JTextField();
-		dirPath.setEditable(false);
-		add(dirPath, c);
 		listmodel = new DefaultListModel<>();
+		filelist = new JList<>(listmodel);
 
-		filelist = new JList<>(this.listmodel);
-		filelist.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-		filelist.setSelectedIndex(1);
-		filelist.setCellRenderer(new FileListRenderer());
-		filelist.addListSelectionListener(this);
-		filelist.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				Diashow.this.mouseClicked(e);
-			}
-		});
-
-		JScrollPane scrollPane = new JScrollPane(filelist);
-		scrollPane.setPreferredSize(new Dimension(Application.getMainWindow().getWidth() / 3,
-				filelist.getPreferredSize().height));
-
-		c.anchor = GridBagConstraints.LINE_START;
+		this.setLayout(new GridBagLayout());
+		JPanel left = getLeftPanel();
+		GridBagConstraints c = new GridBagConstraints();
+		c.weightx = 0.5;
+		c.weighty = 1.0;
 		c.fill = GridBagConstraints.BOTH;
-		c.gridx = 0;
-		c.gridy = 1;
-		c.gridwidth = 3;
-		c.gridheight = GridBagConstraints.REMAINDER;
-		c.weighty = 1;
+		this.add(left, c);
 
-		add(scrollPane, c);
-		bt = new JButton(VProperties.getValue("dia.add"));
+
+
+		JScrollPane showPane = new JScrollPane(showfiles);
+		showfiles.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		showfiles.addListSelectionListener(this);
+
+		c.gridx = 2;
+		this.add(showPane,c );
+
+		c.gridx = 1;
+		c.weightx = 0;
+		this.add(getCenterPanel(), c);
+
+
+
+		path = Settings.diaDirectory.load();
+		this.dirPath.setText(path.getAbsolutePath());
+		setVisible(true);
+
+
+	}
+
+	private JPanel getCenterPanel() {
+		JPanel center = new JPanel(new GridBagLayout());
+
+		GridBagConstraints  c = new GridBagConstraints();
+		JButton bt = new JButton(VProperties.getValue("dia.add"));
 		bt.setActionCommand("add");
 		bt.addActionListener(this);
 		c.anchor = GridBagConstraints.LINE_START;
 		c.fill = GridBagConstraints.HORIZONTAL;
-		c.gridx = 3;
-		c.gridy = 1;
+		c.gridx = 0;
+		c.gridy = 0;
 		c.gridwidth = 2;
 		c.gridheight = 1;
-		c.weighty = 0;
-		add(bt, c);
-
-		bt = new JButton(VProperties.getValue("dia.add_all"));
-		bt.setActionCommand("add_all");
-		bt.addActionListener(this);
-		c.gridx = 3;
-		c.gridy = 3;
-		add(bt, c);
+		c.weightx= 0.5;
+		center.add(bt, c);
 
 		bt = new JButton(VProperties.getValue("dia.remove"));
 		bt.setActionCommand("remove");
 		bt.addActionListener(this);
 		c.anchor = GridBagConstraints.LINE_END;
-		c.gridx = 5;
+		c.gridx = 2;
+		c.gridy = 0;
+		center.add(bt, c);
+
+
+		bt = new JButton(VProperties.getValue("dia.add_all"));
+		bt.setActionCommand("add_all");
+		bt.addActionListener(this);
+		c.anchor = GridBagConstraints.LINE_START;
+		c.gridx = 0;
 		c.gridy = 1;
-		add(bt, c);
+		center.add(bt, c);
+
+
 		bt = new JButton(VProperties.getValue("dia.remove_all"));
 		bt.setActionCommand("remove_all");
-
 		bt.addActionListener(this);
-		c.gridx = 5;
-		c.gridy = 3;
-		add(bt, c);
-		showmodel = new DefaultListModel<>();
-		showfiles = new JList<>(showmodel);
-
-		JScrollPane showPane = new JScrollPane(showfiles);
-		showPane.setPreferredSize(new Dimension(Application.getMainWindow().getWidth() / 3,
-				filelist.getPreferredSize().height));
-		showfiles.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-		showfiles.addListSelectionListener(this);
-		c.anchor = GridBagConstraints.NORTHEAST;
-		c.fill = GridBagConstraints.BOTH;
-		c.gridx = 7;
+		c.anchor = GridBagConstraints.LINE_END;
+		c.gridx = 2;
 		c.gridy = 1;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		c.gridheight = GridBagConstraints.REMAINDER;
-		c.weightx = 0.5;
-		c.weighty = 0;
+		center.add(bt, c);
 
-		add(showPane, c);
+
+
+
+
 
 		bt = new JButton(VProperties.getValue("dia.start"));
 		bt.setActionCommand("start");
 		bt.addActionListener(this);
 		c.anchor = GridBagConstraints.NORTH;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = 2;
+		c.gridwidth = 4;
+		c.gridheight = 1;
+		c.weightx = 1;
+		c.weighty = 0;
+		center.add(bt, c);
+
+		JPanel radioPanel = generateAutomationPanel();
+		c.gridx = 0;
+		c.gridy = 4;
+		c.gridwidth = 4;
+		center.add(radioPanel, c);
+
+
+		c.anchor = GridBagConstraints.NORTH;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = 5;
+		c.gridheight = 1;
+		c.weightx = 0;
+		c.weighty = 0;
+		center.add(delRandom, c);
+		c.anchor = GridBagConstraints.NORTH;
+		c.fill = GridBagConstraints.BOTH;
+		c.gridx = 0;
+		c.gridy = 6;
+		c.gridheight = GridBagConstraints.REMAINDER;
+		c.weightx = 1;
+		c.weighty = 1;
+		center.add(picturePanel, c);
+		picturePanel.setBackground(Color.black);
+		picturePanel.setForeground(Color.black);
+
+		return center;
+	}
+
+	private JPanel generateAutomationPanel() {
+		GridBagConstraints c = new GridBagConstraints();
+		JPanel radioPanel = new JPanel(new GridBagLayout());
+		c.anchor = GridBagConstraints.NORTH;
 		c.fill = GridBagConstraints.NONE;
 		c.gridx = 3;
 		c.gridy = 4;
 		c.gridwidth = 4;
-		c.gridheight = 1;
-		c.weightx = 0;
-		c.weighty = 0;
-		add(bt, c);
-
-		JPanel radioPanel = new JPanel();
-		radioPanel.setLayout(new GridBagLayout());
-		c.anchor = GridBagConstraints.NORTH;
-		c.fill = GridBagConstraints.NONE;
-		c.gridx = 3;
-		c.gridy = 5;
-		c.gridwidth = 4;
 		c.gridheight = 5;
 		c.weightx = 0;
 		c.weighty = 0;
-		add(radioPanel, c);
 
-		group = new ButtonGroup();
+
 		JRadioButton radio = new JRadioButton(VProperties.getValue("dia.auto_mouse"));
 
 		radio.setActionCommand("automaticMouse");
@@ -312,7 +307,7 @@ public class Diashow extends JPanel implements ActionListener,
 		c.weighty = 0;
 		radioPanel.add(radio, c);
 
-		autotime = new JTextField("5");
+
 		autotime.setHorizontalAlignment(JTextField.RIGHT);
 		c.anchor = GridBagConstraints.LINE_START;
 		c.fill = GridBagConstraints.HORIZONTAL;
@@ -331,11 +326,10 @@ public class Diashow extends JPanel implements ActionListener,
 		c.gridheight = 1;
 		c.weightx = 0;
 		c.weighty = 0;
-		label = new Label("sec.");
+		JLabel label = new JLabel("sec.");
 
 		radioPanel.add(label, c);
 
-		zufalltime = new JTextField("5");
 		zufalltime.setHorizontalAlignment(JTextField.RIGHT);
 		c.anchor = GridBagConstraints.LINE_START;
 		c.fill = GridBagConstraints.HORIZONTAL;
@@ -347,7 +341,7 @@ public class Diashow extends JPanel implements ActionListener,
 		c.weighty = 0;
 		radioPanel.add(zufalltime, c);
 
-		label = new Label("sec.");
+		label = new JLabel("sec.");
 		c.anchor = GridBagConstraints.LINE_START;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.gridx = 3;
@@ -357,33 +351,70 @@ public class Diashow extends JPanel implements ActionListener,
 		c.weightx = 0;
 		c.weighty = 0;
 		radioPanel.add(label, c);
+		return radioPanel;
+	}
 
-		delRandom = new JCheckBox(VProperties.getValue("dia.delrand"));
-		c.anchor = GridBagConstraints.NORTH;
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.gridx = 3;
-		c.gridy = 10;
-		c.gridwidth = 4;
+	private JPanel getLeftPanel() {
+		JPanel left = new JPanel(new GridBagLayout());
+
+
+		JButton bt = new JButton(VProperties.getValue("dia.search"));
+		bt.setActionCommand("search");
+		JLabel label = new JLabel("Suchen in:");
+
+		GridBagConstraints c = new GridBagConstraints();
+		c.insets = new Insets(5, 5, 0, 5);
+		c.anchor = GridBagConstraints.LINE_END;
+		c.fill = GridBagConstraints.NONE;
+		c.gridx = 0;
+		c.gridy = 0;
+		c.gridwidth = 1;
 		c.gridheight = 1;
 		c.weightx = 0;
 		c.weighty = 0;
-		add(delRandom, c);
-		c.anchor = GridBagConstraints.NORTH;
-		c.fill = GridBagConstraints.BOTH;
-		c.gridx = 3;
-		c.gridy = 11;
-		c.gridwidth = 4;
-		c.gridheight = GridBagConstraints.REMAINDER;
-		c.weightx = 0;
-		c.weighty = 0;
-		add(picturePanel, c);
-		picturePanel.setBackground(Color.black);
-		picturePanel.setForeground(Color.black);
-		path = Settings.diaDirectory.load();
-		this.dirPath.setText(path.getAbsolutePath());
-		setVisible(true);
+		left.add(label, c);
 
-		System.out.println("Diashow");
+		bt.addActionListener(this);
+
+
+		c.anchor = GridBagConstraints.LINE_START;
+		c.gridx = 1;
+		c.gridy = 0;
+		left.add(bt, c);
+
+		c.anchor = GridBagConstraints.LINE_END;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = 1;
+		c.gridwidth = 2;
+		c.weightx =1;
+		JTextField dirPath = new JTextField();
+		dirPath.setEditable(false);
+		left.add(dirPath, c);
+
+		filelist.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		filelist.setSelectedIndex(1);
+		filelist.setCellRenderer(new FileListRenderer());
+		filelist.addListSelectionListener(this);
+		filelist.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				Diashow.this.mouseClicked(e);
+			}
+		});
+
+		JScrollPane scrollPane = new JScrollPane(filelist);
+
+		c.anchor = GridBagConstraints.LINE_START;
+		c.fill = GridBagConstraints.BOTH;
+		c.gridx = 0;
+		c.gridy = 2;
+		c.gridwidth = 2;
+		c.gridheight = GridBagConstraints.REMAINDER;
+		c.weighty = 1;
+
+		left.add(scrollPane, c);
+		return left;
 	}
 
 	public Diashow(final ImageView imageView) {
@@ -448,7 +479,7 @@ public class Diashow extends JPanel implements ActionListener,
 				switch (helper) {
 					case "automaticMouse":
 						System.out.println("Automatisch Mouse");
-						new Diapresentation(frame, list, false, false, -1);
+						new Diapresentation(frame, list, false, false, -1, null);
 						break;
 					case "automatischr": {
 						int time;
@@ -457,12 +488,12 @@ public class Diashow extends JPanel implements ActionListener,
 						} catch (Exception e) {
 							time = 5;
 						}
-						new Diapresentation(frame, list, false, false, time);
+						new Diapresentation(frame, list, false, false, time, null);
 						break;
 					}
 					case "zufallm":
 
-						new Diapresentation(frame, list, true, delRandom.isSelected(), -1);
+						new Diapresentation(frame, list, true, delRandom.isSelected(), -1, null);
 						break;
 					case "zufallr": {
 
@@ -472,7 +503,7 @@ public class Diashow extends JPanel implements ActionListener,
 						} catch (Exception e) {
 							time = 5;
 						}
-						new Diapresentation(frame, list, true, delRandom.isSelected(), time);
+						new Diapresentation(frame, list, true, delRandom.isSelected(), time, null);
 
 						break;
 					}
@@ -529,7 +560,12 @@ public class Diashow extends JPanel implements ActionListener,
 			selectedindex = filelist.getSelectedIndices();
 			if (selectedindex != null && selectedindex.length> 0) {
 				File f = listmodel.getElementAt(selectedindex[0]);
-				this.picturePanel.openImage(f);
+				try {
+					this.picturePanel.openImage(f);
+				} catch (ViewException e) {
+					//TODO exception handling
+					e.printStackTrace();
+				}
 			}
 		}
 	}

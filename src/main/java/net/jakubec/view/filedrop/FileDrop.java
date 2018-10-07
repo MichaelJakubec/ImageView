@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Reader;
 
+import net.jakubec.view.ViewException;
 import net.jakubec.view.filedrop.FileDrop.TransferableObject;
 
 /**
@@ -124,7 +125,7 @@ public class FileDrop {
 		 *            An array of <tt>File</tt>s that were dropped.
 		 * @since 1.0
 		 */
-		public abstract void filesDropped(java.io.File[] files);
+		public abstract void filesDropped(java.io.File[] files) throws ViewException;
 
 	} // end inner-interface Listener
 
@@ -692,7 +693,11 @@ public class FileDrop {
 
 							// Alert listener to drop.
 							if (listener != null) {
-								listener.filesDropped(files);
+								try {
+									listener.filesDropped(files);
+								} catch (ViewException e) {
+									log(out, "Error while reading file: " + e.getMessage());
+								}
 							}
 
 							// Mark that drop is completed.
@@ -720,7 +725,11 @@ public class FileDrop {
 									BufferedReader br = new BufferedReader(reader);
 
 									if (listener != null) {
-										listener.filesDropped(createFileArray(br, out));
+										try {
+											listener.filesDropped(createFileArray(br, out));
+										} catch (ViewException e) {
+											log(out, "Error while reading file");
+										}
 									}
 
 									// Mark that drop is completed.

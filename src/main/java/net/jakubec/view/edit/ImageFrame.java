@@ -1,28 +1,23 @@
 package net.jakubec.view.edit;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.event.*;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Stack;
-
-import javax.swing.JInternalFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-
 import net.jakubec.view.edit.plain.BasicLayer;
 import net.jakubec.view.edit.plain.ImageLayer;
 import net.jakubec.view.edit.plain.LineLayer;
-import net.jakubec.view.exception.VExceptionHandler;
 import net.jakubec.view.history.CreateLayerHistoryItem;
 import net.jakubec.view.history.HistoryItem;
 import net.jakubec.view.history.MoveHistoryItem;
 import net.jakubec.view.listener.LayerEvent;
 import net.jakubec.view.listener.LayerSelectionListener;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Stack;
 
 public class ImageFrame extends JInternalFrame implements LayerSelectionListener {
 
@@ -72,7 +67,8 @@ public class ImageFrame extends JInternalFrame implements LayerSelectionListener
 						(int) (yMiddle + vBar.getValue() - pHeight / 2), (int) pWidth,
 						(int) pHeight);
 			} catch (Exception e) {
-				VExceptionHandler.raiseException(e);
+				//TODO Exception handling
+				e.printStackTrace();
 				return;
 			}
 			if (x < 0) {
@@ -279,48 +275,45 @@ public class ImageFrame extends JInternalFrame implements LayerSelectionListener
 	private void drawActiveTool(Graphics g, int x, int y) {
 
 		switch (parent.getEditMode()) {
-		case LINE:
-			double xLineStart = start.getX();
-			double xLineEnd = currentMouse.getX();
-			double yLineStart = start.getY();
-			double yLineEnd = currentMouse.getY();
-			if (workingHeight * factor < painter.getHeight()) {
-				// double x= (painter.getHeight()-workingHeight*factor)/2;
+			case LINE:
+				double xLineStart = start.getX();
+				double xLineEnd = currentMouse.getX();
+				double yLineStart = start.getY();
+				double yLineEnd = currentMouse.getY();
+				if (workingHeight * factor < painter.getHeight()) {
+					// double x= (painter.getHeight()-workingHeight*factor)/2;
 
-				if (yLineStart < y) {
-					yLineStart = y;
-				} else if (yLineStart > y + workingHeight * factor) {
-					yLineStart = y + workingHeight * factor;
+					if (yLineStart < y) {
+						yLineStart = y;
+					} else if (yLineStart > y + workingHeight * factor) {
+						yLineStart = y + workingHeight * factor;
+					}
+					if (yLineEnd < y) {
+						yLineStart = y;
+					} else if (yLineEnd > y + workingHeight * factor) {
+						yLineEnd = y + workingHeight * factor;
+					}
+
 				}
-				if (yLineEnd < y) {
-					yLineStart = y;
-				} else if (yLineEnd > y + workingHeight * factor) {
-					yLineEnd = y + workingHeight * factor;
+				if (workingWidth * factor < painter.getWidth()) {
+					// double x= (painter.getHeight()-workingHeight*factor)/2;
+
+					if (xLineStart < x) {
+						xLineStart = x;
+					} else if (xLineStart > x + workingWidth * factor) {
+						xLineStart = x + workingWidth * factor;
+					}
+					if (xLineEnd < x) {
+						xLineStart = x;
+					} else if (yLineEnd > x + workingWidth * factor) {
+						xLineEnd = x + workingWidth * factor;
+					}
+
 				}
 
-			}
-			if (workingWidth * factor < painter.getWidth()) {
-				// double x= (painter.getHeight()-workingHeight*factor)/2;
-
-				if (xLineStart < x) {
-					xLineStart = x;
-				} else if (xLineStart > x + workingWidth * factor) {
-					xLineStart = x + workingWidth * factor;
-				}
-				if (xLineEnd < x) {
-					xLineStart = x;
-				} else if (yLineEnd > x + workingWidth * factor) {
-					xLineEnd = x + workingWidth * factor;
-				}
-
-			}
-
-			g.drawLine((int) xLineStart, (int) yLineStart, (int) xLineEnd, (int) yLineEnd);
+				g.drawLine((int) xLineStart, (int) yLineStart, (int) xLineEnd, (int) yLineEnd);
 		}
 	}
-
-
-
 
 
 	@Override
@@ -332,29 +325,26 @@ public class ImageFrame extends JInternalFrame implements LayerSelectionListener
 		EditPanel.EditMode m = parent.getEditMode();
 
 		switch (m) {
-		case LINE:
-			active = true;
-			currentMouse = e.getPoint();
-			repaint();
-			break;
-		case MOVE:
-			Point tmp = e.getPoint();
-			int divX = (int) ((tmp.getX() - mousePressed.getX()) / factor);
-			int divY = (int) ((tmp.getY() - mousePressed.getY()) / factor);
-			mousePressed = tmp;
+			case LINE:
+				active = true;
+				currentMouse = e.getPoint();
+				repaint();
+				break;
+			case MOVE:
+				Point tmp = e.getPoint();
+				int divX = (int) ((tmp.getX() - mousePressed.getX()) / factor);
+				int divY = (int) ((tmp.getY() - mousePressed.getY()) / factor);
+				mousePressed = tmp;
 
-			plains.get(aktiveLayer).moveImage(divX, divY);
-			repaint();
-			break;
-		default:
-			// do nothing;
+				plains.get(aktiveLayer).moveImage(divX, divY);
+				repaint();
+				break;
+			default:
+				// do nothing;
 
 		}
 
 	}
-
-
-
 
 
 	private Point screenToImageCoordinates(Point enter) {

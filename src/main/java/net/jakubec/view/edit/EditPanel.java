@@ -1,20 +1,17 @@
 package net.jakubec.view.edit;
 
-import java.awt.Color;
-import java.awt.Container;
+import net.jakubec.view.BasicPanel;
+import net.jakubec.view.ViewException;
+import net.jakubec.view.edit.tool.VToolBox;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
-import javax.imageio.ImageIO;
-import javax.swing.JDesktopPane;
-
-import net.jakubec.view.Application;
-import net.jakubec.view.BasicPanel;
-import net.jakubec.view.Settings.VSettings;
-import net.jakubec.view.edit.tool.VToolBox;
-import net.jakubec.view.exception.VExceptionHandler;
 
 public class EditPanel extends JDesktopPane implements BasicPanel {
 
@@ -39,7 +36,7 @@ public class EditPanel extends JDesktopPane implements BasicPanel {
 
 			@Override
 			public void keyPressed(final KeyEvent e) {
-			//TODO compile error	activeFrame.keyPressed(e);
+				//TODO compile error	activeFrame.keyPressed(e);
 
 			}
 
@@ -90,15 +87,14 @@ public class EditPanel extends JDesktopPane implements BasicPanel {
 	}
 
 	@Override
-	public void openImage(final File image) {
+	public void openImage(final File image) throws ViewException {
 
-		Application.getMainWindow().setTitle(VSettings.PROG_NAME);
+		// TODO Application.getMainWindow().setTitle(VSettings.PROG_NAME);
 		try {
 			BufferedImage origin = ImageIO.read(image);
 			setImage(origin);
 		} catch (Exception e) {
-			VExceptionHandler.raiseException(e, "The file couldn't be opened");
-
+			throw new ViewException(e, ViewException.OPEN_FAILED);
 		}
 
 	}

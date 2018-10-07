@@ -1,6 +1,7 @@
 package net.jakubec.view.dia;
 
-import net.jakubec.view.ImageView;
+
+import net.jakubec.view.Settings.SettingsException;
 import net.jakubec.view.Settings.VSettings;
 import net.jakubec.view.ViewPanel;
 import org.apache.logging.log4j.LogManager;
@@ -8,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.EventListenerList;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -34,6 +36,8 @@ public class Diapresentation extends JWindow implements KeyListener {
 
 	private static final Logger log = LogManager.getLogger(Diapresentation.class);
 
+	private final EventListenerList listeners = new EventListenerList();
+
 	/**
 	 * boolean if the pictures should be displayerd in random order
 	 */
@@ -45,25 +49,25 @@ public class Diapresentation extends JWindow implements KeyListener {
 	 */
 	private boolean delrandom;
 
+	private Window view;
 
 	private ViewPanel panel = new ViewPanel(false);
 	private BufferedImage nextImg = new BufferedImage(1, 1, 1);
 
-
-	private final ImageView view;
-
-
 	private volatile CountDown countDown;
 
 
-	public Diapresentation(final ImageView view, final ArrayList<File> list,
-						   final boolean zufall, final boolean delrand, final int wait) {
+	public Diapresentation(final Window view, final ArrayList<File> list,
+						   final boolean zufall, final boolean delrand, final int wait, DiaPresentationListener listener) {
 		super(view);
 
 		this.setContentPane(this.panel);
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice[] gs = ge.getScreenDevices();
 		this.setSize(gs[0].getDisplayMode().getWidth(), gs[0].getDisplayMode().getHeight());
+		if (listener != null) {
+			this.listeners.add(DiaPresentationListener.class, listener);
+		}
 
 
 		setBackground(Color.black);
@@ -200,23 +204,25 @@ public class Diapresentation extends JWindow implements KeyListener {
 		this.pauseCountDown();
 		stopThread();
 
-		VSettings.saveProps();
+		try {
+			VSettings.saveProps();
+		} catch (SettingsException e) {
+			//TODO Exception Handling
+			e.printStackTrace();
+		}
 
 		setVisible(false);
 		view.removeKeyListener(this);
 		dispose();
-		view.setVisible(true);
-		Thread t = new Thread(() -> {
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			view.repaint();
-		});
-		t.start();
-		view.showViewMode();
-		view.repaint();
+
+		fireDiaEvent(new DiaEvent(DiaEvent.DiaEventType.FINISHED));
+
+	}
+
+	private void fireDiaEvent(DiaEvent diaEvent) {
+		for(DiaPresentationListener listener: listeners.getListeners(DiaPresentationListener.class)) {
+			listener.presentationChanged(diaEvent);
+		}
 	}
 
 

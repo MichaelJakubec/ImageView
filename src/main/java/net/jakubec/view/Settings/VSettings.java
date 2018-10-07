@@ -7,8 +7,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 
-import net.jakubec.view.ImageView;
-import net.jakubec.view.exception.VExceptionHandler;
+import net.jakubec.view.app.ImageView;
 
 public final class VSettings {
 	/**
@@ -57,7 +56,7 @@ public final class VSettings {
 		settings.put(key, value);
 	}
 
-	public static void saveProps() {
+	public static void saveProps() throws SettingsException{
 		try {
 			settings.storeToXML(new FileOutputStream(new File(rootDir, "settingsProvider.prop")),
 					"SettingsProvider");
@@ -66,8 +65,8 @@ public final class VSettings {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (Exception re) {
-			SettingsException e = new SettingsException(1);
-			VExceptionHandler.raiseException(e);
+			throw new SettingsException(1);
+
 		}
 
 	}

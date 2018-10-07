@@ -3,10 +3,10 @@ package net.jakubec.view;
 import net.jakubec.view.Settings.Settings;
 import net.jakubec.view.Settings.VSettings;
 import net.jakubec.view.dia.Diapresentation;
-import net.jakubec.view.exception.VExceptionHandler;
+
 import net.jakubec.view.filedrop.FileDrop;
-import net.jakubec.view.listener.MenuListener;
-import net.jakubec.view.menu.MenuFactory;
+
+import net.jakubec.view.listener.ViewNavigationListener;
 import net.jakubec.view.properties.VProperties;
 import net.jakubec.view.save.ImageSaver;
 
@@ -106,7 +106,7 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 		this.add(imp, BorderLayout.CENTER);
 		cp = this;
 		if (showToolbar) {
-			cp.add(MenuFactory.newMenuBar(new MenuListener(this)), BorderLayout.NORTH);
+			cp.add(newMenuBar(new ViewNavigationListener(this)), BorderLayout.NORTH);
 		}
 		addComponentListener(new ComponentAdapter() {
 			@Override
@@ -146,10 +146,12 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 		sWidth = imp.getWidth();
 		sHeight = imp.getHeight();
 		if (sWidth == 0 || sHeight == 0 || origin == null) return;
-		Application.getMainWindow()
-				.setTitle(
-						Settings.currentImage.load().getAbsolutePath() + " - "
-								+ (int) (factor * 100) + "%");
+
+		// TODO zoom listener
+//		Application.getMainWindow()
+//				.setTitle(
+//						Settings.currentImage.load().getAbsolutePath() + " - "
+//								+ (int) (factor * 100) + "%");
 		int originHeight = origin.getHeight();
 		int originWidth = origin.getWidth();
 
@@ -214,7 +216,7 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	}
 
 	@Override
-	public void delete() {
+	public void delete() throws ViewException {
 
 		int result = JOptionPane.showConfirmDialog(this,
 				VProperties.getValue("ask.delete.question"),
@@ -225,8 +227,8 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 			File img = Settings.currentImage.load();
 
 			if (!img.delete()) {
-				ViewException ve = new ViewException(ViewException.DELETE_FAILED);
-				VExceptionHandler.raiseException(ve, ve.getErrorMsg());
+				throw new ViewException(ViewException.DELETE_FAILED);
+
 			}
 		}
 
@@ -277,11 +279,11 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 			// Zeichnet das Orignial Bild skalliert
 			g2d.drawImage(origin, 0, 0, (int) Math.round(iWidth), (int) Math.round(iHeight), null);
 		}
-
-		Application.getMainWindow()
-				.setTitle(
-						Settings.currentImage.load().getAbsolutePath() + " - "
-								+ (int) (factor * 100) + "%");
+// TODO Zoom info selection listener?
+//		Application.getMainWindow()
+//				.setTitle(
+//						Settings.currentImage.load().getAbsolutePath() + " - "
+//								+ (int) (factor * 100) + "%");
 		xmiddle = origin.getWidth() / 2;
 		ymiddle = origin.getHeight() / 2;
 		cp.repaint();
@@ -292,7 +294,8 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	public void fullImage() {
 		ArrayList<File> arr = new ArrayList<>();
 		arr.add(Settings.currentImage.load());
-		new Diapresentation(Application.getMainWindow(), arr, false, false, -1);
+		Window topFrame = SwingUtilities.getWindowAncestor(this);
+		new Diapresentation(topFrame, arr, false, false, -1, null);
 		System.out.println("fullImage");
 	}
 
@@ -301,6 +304,8 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 
 		return this;
 	}
+
+
 
 	@Override
 	public void mouseClicked(final MouseEvent e) {
@@ -349,28 +354,30 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	}
 
 	@Override
-	public void openImage(final File image) {
+	public void openImage(final File image) throws ViewException {
 		if (image == null || image.equals(new File(""))) return;
 
 		Settings.currentImage.save(image);
 		Settings.currentDirectory.save(image.getParentFile());
 
-		JFrame frame = Application.getMainWindow();
-		if (frame != null) {
-			frame.setTitle(Settings.currentDirectory.load() + System.getProperty("file.separator")
-					+ Settings.currentImage.load().getName());
-		}
+
+
 		try {
 
 			origin = ImageIO.read(image);
 
-			Application.setProgramIcon(origin);
+
+			// TODO Image Selected Listener?
+//			if (frame != null) {
+//				frame.setTitle(Settings.currentDirectory.load() + System.getProperty("file.separator")
+//						+ Settings.currentImage.load().getName());
+//			}
+			//Application.setProgramIcon(origin);
 			hBar.setVisible(false);
 			vBar.setVisible(false);
 			drawImage(origin);
 		} catch (Exception e) {
-			VExceptionHandler.raiseException(e, "The file couldn't be opened");
-
+			throw new ViewException(e, ViewException.OPEN_FAILED);
 		}
 	}
 
@@ -411,26 +418,24 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	}
 
 	@Override
-	public void save() {
+	public void save() throws ViewException{
 		try {
 			String currentImage = VSettings.loadSetting("current.image");
 			if (currentImage != null) {
 				ImageSaver.save(img, VSettings.loadSetting("current.dir"), currentImage);
-			} else {
-				VExceptionHandler.raiseMessage("The file couldn't be saved");
 			}
 		} catch (IOException e) {
-			VExceptionHandler.raiseException(e, "The file couldn't be saved");
+			throw new ViewException(e,ViewException.SAVE_FAILED);
 		}
 
 	}
 
 	@Override
-	public void saveAs() {
+	public void saveAs() throws ViewException {
 		try {
 			ImageSaver.saveAs(img, VSettings.loadSetting("current.dir"));
 		} catch (IOException e) {
-			VExceptionHandler.raiseException(e, "The file couldn't be saved");
+			throw new ViewException(e,ViewException.SAVE_FAILED);
 		}
 	}
 
@@ -555,6 +560,69 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 
 
 
+	}
+
+	/**
+	 * Creates a new MenuBar for the View
+	 *
+	 * @return the MenuBar for the view
+	 */
+	public static JToolBar newMenuBar(final ActionListener act) {
+		JToolBar toolbar = new JToolBar();
+		JButton btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/open.gif")));
+		btn.setActionCommand("open");
+		toolbar.add(btn);
+
+		btn.addActionListener(act);
+
+		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/dia.gif")));
+		btn.setActionCommand("dia");
+		toolbar.add(btn);
+		toolbar.addSeparator();
+		btn.addActionListener(act);
+
+		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/previous.gif")));
+		btn.setActionCommand("previous");
+		toolbar.add(btn);
+		btn.addActionListener(act);
+
+		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/next.gif")));
+		btn.setActionCommand("next");
+		toolbar.add(btn);
+		btn.addActionListener(act);
+		toolbar.addSeparator();
+
+		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/zoom+.gif")));
+		btn.setActionCommand("zoom+");
+		toolbar.add(btn);
+		btn.addActionListener(act);
+
+		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/zoom-.gif")));
+		btn.setActionCommand("zoom-");
+		toolbar.add(btn);
+		btn.addActionListener(act);
+
+		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/zoom.gif")));
+		btn.setActionCommand("zoom0");
+		toolbar.add(btn);
+		btn.addActionListener(act);
+
+		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/zoom100.gif")));
+		btn.setActionCommand("zoom1");
+		toolbar.add(btn);
+		btn.addActionListener(act);
+		toolbar.addSeparator();
+
+		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/Rot-.gif")));
+		btn.setActionCommand("rot-");
+		toolbar.add(btn);
+		btn.addActionListener(act);
+		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/Rot+.gif")));
+		btn.setActionCommand("rot+");
+		toolbar.add(btn);
+		btn.addActionListener(act);
+
+		return toolbar;
 	}
 
 }

@@ -78,8 +78,7 @@ public class PrintImage implements Printable {
 			final Dimension orig= new Dimension(img.getWidth(),img.getHeight());
 			Dimension boundingBox = new Dimension((int) (pageFormat.getImageableWidth()), (int) pageFormat.getImageableHeight());
 			
-				g2d.drawImage(img, 0, 0,
-				          null);
+				g2d.drawImage(img, 0, 0,null);
 				
 	        
 			
