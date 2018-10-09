@@ -25,13 +25,6 @@ public interface BasicPanel {
 	void fullImage();
 
 	/**
-	 * returns the GUI of this Panel
-	 * 
-	 * @return the GUI
-	 */
-	Container getPanel();
-
-	/**
 	 * opens the Image spezified by this File
 	 * 
 	 * @param selected the file which should be displayed

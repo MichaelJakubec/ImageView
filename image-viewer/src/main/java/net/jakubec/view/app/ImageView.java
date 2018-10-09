@@ -20,14 +20,8 @@ import java.util.Locale;
 public class ImageView extends JFrame {
 	private static final Logger log = LogManager.getLogger(ImageView.class);
 
-	public static final String FILETYPES = "jpg.gif.png.bmp";
+
 	private static final long serialVersionUID = -4865378884812046578L;
-
-
-	/**
-	 * The MenuListener
-	 */
-	private MenuListener menuListener;
 
 
 	/**
@@ -69,10 +63,10 @@ public class ImageView extends JFrame {
 			if (f.exists()) {
 				showViewMode(f);
 			} else {
-				showViewMode();
+				showViewMode(null);
 			}
 		} else {
-			showViewMode();
+			showViewMode(null);
 		}
 
 		this.setIconImage(new ImageIcon(ImageView.class.getResource("/icon.gif")).getImage());
@@ -88,7 +82,7 @@ public class ImageView extends JFrame {
 	/**
 	 * shows the Diahow Mode
 	 */
-	public void showDiashowMode() {
+	void showDiashowMode() {
 		Diashow currentView = new Diashow(this);
 		this.setJMenuBar(null);
 		SwingUtilities.invokeLater(() -> setContentPane(currentView));
@@ -97,14 +91,11 @@ public class ImageView extends JFrame {
 	/**
 	 * show the Edit Mode
 	 */
-	public void showEditMode() {
+	void showEditMode() {
 		EditPanel editPanel = new EditPanel();
-		Container currentView = editPanel.getPanel();
-		setJMenuBar(MenuFactory.createEditMenu(menuListener));
-		setContentPane(currentView);
-		//menuListener.setCurrentPanel(editPanel);
+		setJMenuBar(MenuFactory.createEditMenu(new MenuListener(editPanel)));
+		setContentPane(editPanel);
 		this.repaint();
-
 	}
 
 	/**
@@ -121,24 +112,14 @@ public class ImageView extends JFrame {
 				VExceptionHandler.raiseException(e);
 			}
 		}
-		Container currentView = viewPanel.getPanel();
 
-		setContentPane(currentView);
-		if (menuListener == null) {
-			menuListener = new MenuListener(viewPanel);
-		} else {
-			//menuListener.setCurrentPanel(viewPanel);
-		}
+
+		setContentPane(viewPanel);
+		MenuListener menuListener = new MenuListener(viewPanel);
 		setJMenuBar(MenuFactory.createMenu(menuListener));
 	}
 
 
-	/**
-	 * shows the edit Mode
-	 */
-	public void showViewMode() {
-		showViewMode(null);
-	}
 
 	/**
 	 * This Method starts the plugin and checks if it uses a own Frame or should
@@ -146,7 +127,7 @@ public class ImageView extends JFrame {
 	 *
 	 * @param pluginName the Name of the Plugin which should be started
 	 */
-	public void startPlugin(final String pluginName) {
+	void startPlugin(final String pluginName) {
 		ViewPlugin plugin = null;
 
 		try {

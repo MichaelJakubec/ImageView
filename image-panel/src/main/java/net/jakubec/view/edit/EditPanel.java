@@ -82,11 +82,6 @@ public class EditPanel extends JDesktopPane implements BasicPanel {
 	}
 
 	@Override
-	public Container getPanel() {
-		return this;
-	}
-
-	@Override
 	public void openImage(final File image) throws ViewException {
 
 		// TODO Application.getMainWindow().setTitle(VSettings.PROG_NAME);

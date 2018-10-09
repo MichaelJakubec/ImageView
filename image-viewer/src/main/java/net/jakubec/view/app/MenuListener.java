@@ -26,6 +26,8 @@ class MenuListener extends ViewNavigationListener {
 			Application.getMainWindow().startPlugin(eventCode.substring(5));
 		} else if (eventCode.equals("help")) {
 			new AboutDialog();
+		} else {
+			super.actionPerformed(e);
 		}
 	}
 

@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 
-import net.jakubec.view.app.ImageView;
 
 public final class VSettings {
 	/**
@@ -25,7 +24,7 @@ public final class VSettings {
 
 	static {
 		try {
-			URL path = ImageView.class.getProtectionDomain().getCodeSource().getLocation();
+			URL path = VSettings.class.getProtectionDomain().getCodeSource().getLocation();
 			rootDir = new File(path.getFile()).getParentFile();
 			rootPath = rootDir.getPath() + System.getProperty("file.separator");
 

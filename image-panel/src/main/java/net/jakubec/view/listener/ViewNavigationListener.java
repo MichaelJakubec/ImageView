@@ -5,7 +5,7 @@ import net.jakubec.view.Settings.Settings;
 import net.jakubec.view.Settings.SettingsException;
 import net.jakubec.view.Settings.VSettings;
 import net.jakubec.view.ViewException;
-import net.jakubec.view.app.ImageView;
+
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -16,6 +16,8 @@ import java.util.Vector;
 
 public class ViewNavigationListener implements ActionListener {
 	private final BasicPanel panel;
+
+	public static final String FILE_TYPES = "jpg.gif.png.bmp";
 
 	public ViewNavigationListener(BasicPanel viewPanel) {
 		this.panel = viewPanel;
@@ -71,7 +73,7 @@ public class ViewNavigationListener implements ActionListener {
 								continue;
 							}
 							String shelper = st.nextToken();
-							int start = ImageView.FILETYPES.indexOf(shelper.toLowerCase());
+							int start = FILE_TYPES.indexOf(shelper.toLowerCase());
 							if (start != -1) {
 								v.add(image);
 							}
@@ -111,7 +113,7 @@ public class ViewNavigationListener implements ActionListener {
 								continue;
 							}
 							String shelper = st.nextToken();
-							int start = ImageView.FILETYPES.indexOf(shelper.toLowerCase());
+							int start = FILE_TYPES.indexOf(shelper.toLowerCase());
 							if (start != -1) {
 								v.add(image);
 							}

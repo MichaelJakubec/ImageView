@@ -39,6 +39,8 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	 * Container for the
 	 */
 	private final Container cp;
+
+	private final JPanel glassPanel = new JPanel();
 	/**
 	 * The factor of the image which is scaled
 	 */
@@ -93,18 +95,27 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 		this(true);
 	}
 	public ViewPanel(boolean showToolbar){
-		setLayout(new BorderLayout());
+
+
+		cp = new JPanel(new BorderLayout());
+		cp.setBackground(Color.black);
+
+		glassPanel.setOpaque(false);
+		glassPanel.setBackground(Color.RED);
+
+		//add(glassPanel, JLayeredPane.PALETTE_LAYER);
+
+
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		vBar = new JScrollBar(JScrollBar.VERTICAL, 0, 0, 0, 0);
 		vBar.addAdjustmentListener(this);
 		hBar = new JScrollBar(JScrollBar.HORIZONTAL, 0, 0, 0, 0);
 		hBar.addAdjustmentListener(this);
-		this.add(vBar, BorderLayout.EAST);
-		this.add(hBar, BorderLayout.SOUTH);
+		cp.add(vBar, BorderLayout.EAST);
+		cp.add(hBar, BorderLayout.SOUTH);
 		imp = new ImagePainter();
-		this.add(imp, BorderLayout.CENTER);
-		cp = this;
+		cp.add(imp, BorderLayout.CENTER);
 		if (showToolbar) {
 			cp.add(newMenuBar(new ViewNavigationListener(this)), BorderLayout.NORTH);
 		}
@@ -132,6 +143,8 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 				openImage(files[0]);
 			}
 		});
+
+		add(cp, BorderLayout.CENTER);
 	}
 
 	@Override
@@ -299,10 +312,11 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 		System.out.println("fullImage");
 	}
 
-	@Override
-	public Container getPanel() {
 
-		return this;
+
+	@Override
+	public void setBackground(Color color) {
+		//cp.setBackground(color);
 	}
 
 
@@ -567,7 +581,7 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	 *
 	 * @return the MenuBar for the view
 	 */
-	public static JToolBar newMenuBar(final ActionListener act) {
+	private static JToolBar newMenuBar(final ActionListener act) {
 		JToolBar toolbar = new JToolBar();
 		JButton btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/open.gif")));
 		btn.setActionCommand("open");
