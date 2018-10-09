@@ -3,9 +3,9 @@ package net.jakubec.view.edit;
 import net.jakubec.view.edit.plain.BasicLayer;
 import net.jakubec.view.edit.plain.ImageLayer;
 import net.jakubec.view.edit.plain.LineLayer;
-import net.jakubec.view.history.CreateLayerHistoryItem;
-import net.jakubec.view.history.HistoryItem;
-import net.jakubec.view.history.MoveHistoryItem;
+import net.jakubec.view.edit.history.CreateLayerHistoryItem;
+import net.jakubec.view.edit.history.HistoryItem;
+import net.jakubec.view.edit.history.MoveHistoryItem;
 import net.jakubec.view.listener.LayerEvent;
 import net.jakubec.view.listener.LayerSelectionListener;
 

@@ -1,7 +1,6 @@
-package net.jakubec.view.history;
+package net.jakubec.view.edit.history;
 
 import java.util.List;
-import java.util.Stack;
 
 import net.jakubec.view.edit.plain.BasicLayer;
 

@@ -1,4 +1,4 @@
-package net.jakubec.view.history;
+package net.jakubec.view.edit.history;
 
 import net.jakubec.view.edit.plain.BasicLayer;
 

@@ -1,11 +1,12 @@
 package net.jakubec.view.app;
 
-import net.jakubec.view.Settings.Settings;
-import net.jakubec.view.Settings.VSettings;
+import net.jakubec.view.app.settings.Settings;
+import net.jakubec.view.app.settings.VSettings;
 import net.jakubec.view.ViewException;
 import net.jakubec.view.ViewPanel;
 import net.jakubec.view.dia.Diashow;
 import net.jakubec.view.edit.EditPanel;
+import net.jakubec.view.listener.ImageDisplayListener;
 import net.jakubec.view.plugin.PluginOrganizer;
 import net.jakubec.view.plugin.ViewPanelPlugin;
 import net.jakubec.view.plugin.ViewPlugin;
@@ -83,7 +84,7 @@ public class ImageView extends JFrame {
 	 * shows the Diahow Mode
 	 */
 	void showDiashowMode() {
-		Diashow currentView = new Diashow(this);
+		Diashow currentView = new Diashow(this, Settings.diaDirectory.load());
 		this.setJMenuBar(null);
 		SwingUtilities.invokeLater(() -> setContentPane(currentView));
 	}
@@ -105,6 +106,19 @@ public class ImageView extends JFrame {
 	 */
 	private void showViewMode(File f) {
 		ViewPanel viewPanel = new ViewPanel();
+		viewPanel.addImageDisplayListener(new ImageDisplayListener() {
+			@Override
+			public void imageOpened(File file) {
+				Settings.currentImage.save(file);
+				Settings.currentDirectory.save(file.getParentFile());
+				setTitle(Settings.currentImage.load().getAbsolutePath());
+			}
+
+			@Override
+			public void zoomLevelChanged(double newZoomLevel) {
+				setTitle(Settings.currentImage.load().getAbsolutePath() + " - " + ((int) (newZoomLevel * 100)) + "%");
+			}
+		});
 		if (f != null) {
 			try {
 				viewPanel.openImage(f);

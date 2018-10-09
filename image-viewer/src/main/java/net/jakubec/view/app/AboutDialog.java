@@ -21,7 +21,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 
-import net.jakubec.view.Settings.VSettings;
+import net.jakubec.view.app.settings.VSettings;
 import net.jakubec.view.properties.VProperties;
 
 /**

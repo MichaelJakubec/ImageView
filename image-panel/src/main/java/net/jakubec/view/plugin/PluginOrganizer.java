@@ -8,7 +8,6 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
-import net.jakubec.view.Settings.VSettings;
 
 /**
  * This class is responsible for the organizing the {@link ViewPlugin}. It loads
@@ -53,7 +52,8 @@ public final class PluginOrganizer {
 	 */
 	private PluginOrganizer(final PluginClassLoader loader) {
 		plugins = new LinkedList<ViewPlugin>();
-		File pluginFolder = VSettings.rootDir;
+		//TODO
+		File pluginFolder = new File("");
 		JOptionPane.showMessageDialog(null, pluginFolder.getAbsolutePath());
 		pluginFolder = new File(pluginFolder, "plugins");
 		if (!pluginFolder.exists() || !pluginFolder.isDirectory()) {

@@ -1,8 +1,7 @@
 package net.jakubec.view.dia;
 
 
-import net.jakubec.view.Settings.SettingsException;
-import net.jakubec.view.Settings.VSettings;
+
 import net.jakubec.view.ViewPanel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -204,12 +203,12 @@ public class Diapresentation extends JWindow implements KeyListener {
 		this.pauseCountDown();
 		stopThread();
 
-		try {
-			VSettings.saveProps();
-		} catch (SettingsException e) {
-			//TODO Exception Handling
-			e.printStackTrace();
-		}
+//		try {
+//			VSettings.saveProps();
+//		} catch (SettingsException e) {
+//			//TODO Exception Handling
+//			e.printStackTrace();
+//		}
 
 		setVisible(false);
 		view.removeKeyListener(this);

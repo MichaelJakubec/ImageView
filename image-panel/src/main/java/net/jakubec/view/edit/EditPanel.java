@@ -27,7 +27,7 @@ public class EditPanel extends JDesktopPane implements BasicPanel {
 
 	private final LayerFrame layerManager;
 
-	public EditMode mode;
+	private EditMode mode;
 
 	public EditPanel() {
 		super();
@@ -56,11 +56,6 @@ public class EditPanel extends JDesktopPane implements BasicPanel {
 		layerManager = new LayerFrame();
 		this.add(layerManager);
 		mode = EditMode.NONE;
-	}
-
-	@Override
-	public void delete() {
-		// TODO Auto-generated method stub
 	}
 
 	// public void dohelp() {
@@ -102,18 +97,6 @@ public class EditPanel extends JDesktopPane implements BasicPanel {
 
 	@Override
 	public void rotateImage(final boolean clockwise) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void save() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void saveAs() {
 		// TODO Auto-generated method stub
 
 	}

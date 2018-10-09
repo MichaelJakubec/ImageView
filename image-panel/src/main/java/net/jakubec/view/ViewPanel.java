@@ -1,14 +1,11 @@
 package net.jakubec.view;
 
-import net.jakubec.view.Settings.Settings;
-import net.jakubec.view.Settings.VSettings;
+
 import net.jakubec.view.dia.Diapresentation;
-
 import net.jakubec.view.filedrop.FileDrop;
-
+import net.jakubec.view.listener.ImageDisplayListener;
 import net.jakubec.view.listener.ViewNavigationListener;
 import net.jakubec.view.properties.VProperties;
-import net.jakubec.view.save.ImageSaver;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -16,7 +13,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener, MouseListener,
@@ -39,8 +35,6 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	 * Container for the
 	 */
 	private final Container cp;
-
-	private final JPanel glassPanel = new JPanel();
 	/**
 	 * The factor of the image which is scaled
 	 */
@@ -89,21 +83,23 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	private final Refresher refresher = new Refresher();
 
 	/**
+	 * the current file object that is displayed
+	 */
+	private File currentImage;
+
+	/**
 	 * Constructor for a new ViewPanel
 	 */
 	public ViewPanel() {
 		this(true);
 	}
-	public ViewPanel(boolean showToolbar){
 
+	public ViewPanel(boolean showToolbar) {
+		JLayeredPane pane = new JLayeredPane();
+		this.setLayout(new BorderLayout());
 
-		cp = new JPanel(new BorderLayout());
+		cp = this;
 		cp.setBackground(Color.black);
-
-		glassPanel.setOpaque(false);
-		glassPanel.setBackground(Color.RED);
-
-		//add(glassPanel, JLayeredPane.PALETTE_LAYER);
 
 
 		addMouseListener(this);
@@ -144,7 +140,7 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 			}
 		});
 
-		add(cp, BorderLayout.CENTER);
+		//add(cp, BorderLayout.CENTER);
 	}
 
 	@Override
@@ -160,6 +156,10 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 		sHeight = imp.getHeight();
 		if (sWidth == 0 || sHeight == 0 || origin == null) return;
 
+
+		for (ImageDisplayListener l:listenerList.getListeners(ImageDisplayListener.class)){
+			l.zoomLevelChanged(factor);
+		}
 		// TODO zoom listener
 //		Application.getMainWindow()
 //				.setTitle(
@@ -217,43 +217,27 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 
 		Graphics2D g2d = img.createGraphics();
 		// Zeichnet das Orignial Bild skalliert
-		if (fast){
-			//g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+		if (fast) {
 			refresher.startRefresh();
 		} else {
 			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 		}
 		g2d.drawImage(subImage, 0, 0, (int) Math.round(iWidth), (int) Math.round(iHeight), null);
 		cp.repaint();
-
 	}
 
-	@Override
-	public void delete() throws ViewException {
-
-		int result = JOptionPane.showConfirmDialog(this,
-				VProperties.getValue("ask.delete.question"),
-				VProperties.getValue("ask.delete.title"), JOptionPane.YES_NO_OPTION,
-				JOptionPane.QUESTION_MESSAGE);
-		if (result == JOptionPane.YES_OPTION) {
-
-			File img = Settings.currentImage.load();
-
-			if (!img.delete()) {
-				throw new ViewException(ViewException.DELETE_FAILED);
-
-			}
-		}
-
+	public void addImageDisplayListener(ImageDisplayListener listener){
+		this.listenerList.add(ImageDisplayListener.class, listener);
 	}
 
-
+	private void removeImageDisplayListener(ImageDisplayListener listener){
+		this.listenerList.remove(ImageDisplayListener.class, listener);
+	}
 
 	/**
 	 * Draws the Image
-	 * 
-	 * @param origin
-	 *            The Original Image
+	 *
+	 * @param origin The Original Image
 	 */
 	private void drawImage(final BufferedImage origin) {
 		sWidth = imp.getWidth();
@@ -287,6 +271,11 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 			} else {
 				factor = wFactor;
 			}
+
+			for (ImageDisplayListener l:listenerList.getListeners(ImageDisplayListener.class)){
+				l.zoomLevelChanged(factor);
+			}
+
 			img = new BufferedImage((int) iWidth, (int) iHeight, origin.getType());
 			Graphics2D g2d = img.createGraphics();
 			// Zeichnet das Orignial Bild skalliert
@@ -306,19 +295,17 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	@Override
 	public void fullImage() {
 		ArrayList<File> arr = new ArrayList<>();
-		arr.add(Settings.currentImage.load());
+		arr.add(currentImage);
 		Window topFrame = SwingUtilities.getWindowAncestor(this);
 		new Diapresentation(topFrame, arr, false, false, -1, null);
 		System.out.println("fullImage");
 	}
 
 
-
 	@Override
 	public void setBackground(Color color) {
 		//cp.setBackground(color);
 	}
-
 
 
 	@Override
@@ -370,26 +357,19 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	@Override
 	public void openImage(final File image) throws ViewException {
 		if (image == null || image.equals(new File(""))) return;
-
-		Settings.currentImage.save(image);
-		Settings.currentDirectory.save(image.getParentFile());
-
-
+		if (image.equals(currentImage)) return;
 
 		try {
 
 			origin = ImageIO.read(image);
 
-
-			// TODO Image Selected Listener?
-//			if (frame != null) {
-//				frame.setTitle(Settings.currentDirectory.load() + System.getProperty("file.separator")
-//						+ Settings.currentImage.load().getName());
-//			}
-			//Application.setProgramIcon(origin);
 			hBar.setVisible(false);
 			vBar.setVisible(false);
 			drawImage(origin);
+			this.currentImage = image;
+			for (ImageDisplayListener l: listenerList.getListeners(ImageDisplayListener.class)){
+				l.imageOpened(image);
+			}
 		} catch (Exception e) {
 			throw new ViewException(e, ViewException.OPEN_FAILED);
 		}
@@ -405,15 +385,13 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	public void rotateImage(final boolean clockwise) {
 		if (origin == null) return;
 		BufferedImage rotatedImage;
-		String[] currentFilename = Settings.currentImage.load().getName().split("\\.");
-		String fileExtension = "";
-		if (currentFilename.length < 2) {
-			fileExtension = currentFilename[currentFilename.length - 1];
-		}
 
-		rotatedImage = new BufferedImage(origin.getHeight(), origin.getWidth(),
-				(fileExtension.equalsIgnoreCase("jpg") ? origin.getType()
-						: BufferedImage.TYPE_INT_ARGB));
+
+//		rotatedImage = new BufferedImage(origin.getHeight(), origin.getWidth(),
+//				(fileExtension.equalsIgnoreCase("jpg") ? origin.getType()
+//						: BufferedImage.TYPE_INT_ARGB));
+
+		rotatedImage = new BufferedImage(origin.getHeight(), origin.getWidth(), origin.getType());
 
 		Graphics2D g = (Graphics2D) rotatedImage.getGraphics();
 		if (clockwise) {
@@ -431,27 +409,6 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 
 	}
 
-	@Override
-	public void save() throws ViewException{
-		try {
-			String currentImage = VSettings.loadSetting("current.image");
-			if (currentImage != null) {
-				ImageSaver.save(img, VSettings.loadSetting("current.dir"), currentImage);
-			}
-		} catch (IOException e) {
-			throw new ViewException(e,ViewException.SAVE_FAILED);
-		}
-
-	}
-
-	@Override
-	public void saveAs() throws ViewException {
-		try {
-			ImageSaver.saveAs(img, VSettings.loadSetting("current.dir"));
-		} catch (IOException e) {
-			throw new ViewException(e,ViewException.SAVE_FAILED);
-		}
-	}
 
 	@Override
 	public void setImage(final BufferedImage img) {
@@ -530,37 +487,37 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 
 		private boolean run;
 
-		void startRefresh(){
+		void startRefresh() {
 			synchronized (lock) {
 				start = System.currentTimeMillis();
-				if (!run){
+				if (!run) {
 					run = true;
 					new Thread(this::run).start();
 				}
 			}
 		}
 
-		private void run(){
+		private void run() {
 			try {
 				Thread.sleep(WAIT);
 
-			boolean doContinue = true;
-			do {
-				long now = System.currentTimeMillis();
-				long sleep;
-				synchronized (lock) {
-					sleep = now - (start + WAIT);
-					if (sleep - 5 < 0) {
-						doContinue = false;
-						run = false;
+				boolean doContinue = true;
+				do {
+					long now = System.currentTimeMillis();
+					long sleep;
+					synchronized (lock) {
+						sleep = now - (start + WAIT);
+						if (sleep - 5 < 0) {
+							doContinue = false;
+							run = false;
+						}
 					}
-				}
-					if (sleep > 0){
+					if (sleep > 0) {
 						Thread.sleep(sleep);
 					}
 
-			}while(doContinue);
-				SwingUtilities.invokeLater(() ->	calcZoom(false));
+				} while (doContinue);
+				SwingUtilities.invokeLater(() -> calcZoom(false));
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 				synchronized (lock) {
@@ -570,8 +527,6 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 
 
 		}
-
-
 
 
 	}

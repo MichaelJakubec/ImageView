@@ -1,4 +1,4 @@
-package net.jakubec.view.Settings;
+package net.jakubec.view.app.settings;
 
 import java.io.File;
 
@@ -38,7 +38,7 @@ public class Settings<T> {
 	/**
 	 * stores if the program should update automatically.
 	 */
-	static Settings<Boolean> automaticUpdate = new Settings<>("settings.autoUpdate",
+	public static Settings<Boolean> automaticUpdate = new Settings<>("settings.autoUpdate",
 			Boolean.class, true);
 
 	/**

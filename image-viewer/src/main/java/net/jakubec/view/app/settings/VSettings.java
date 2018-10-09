@@ -1,4 +1,4 @@
-package net.jakubec.view.Settings;
+package net.jakubec.view.app.settings;
 
 import java.io.File;
 import java.io.FileInputStream;

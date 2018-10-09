@@ -1,6 +1,5 @@
 package net.jakubec.view;
 
-import java.awt.Container;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
@@ -14,10 +13,6 @@ import java.io.File;
  * 
  */
 public interface BasicPanel {
-	/**
-	 * the current selected image will be deleted
-	 */
-	void delete() throws ViewException;
 
 	/**
 	 * set the zoomlevel to 100 percent
@@ -44,18 +39,6 @@ public interface BasicPanel {
 	 *            specifies if the image should be rotated clockwise or not
 	 */
 	void rotateImage(boolean clockwise);
-
-	/**
-	 * saves the current displayed image if this image hasn't been saved before.
-	 * This method has the same effect as the method {@link #saveAs()}
-	 */
-	void save() throws ViewException;
-
-	/**
-	 * the saveAs method allows the user to select the type of the image and its
-	 * path.
-	 */
-	void saveAs() throws ViewException;
 
 	/**
 	 * sets the current image that should be displayed.

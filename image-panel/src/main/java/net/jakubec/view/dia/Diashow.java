@@ -29,7 +29,7 @@ import javax.swing.event.ListSelectionListener;
 
 import net.jakubec.view.ViewException;
 
-import net.jakubec.view.Settings.Settings;
+
 import net.jakubec.view.ViewPanel;
 import net.jakubec.view.properties.VProperties;
 
@@ -113,7 +113,7 @@ public class Diashow extends JPanel implements ActionListener,
 	private final JCheckBox delRandom = new JCheckBox(VProperties.getValue("dia.delrand"));
 
 
-	private Diashow() {
+	private Diashow(File path) {
 		super();
 		setBackground(Color.LIGHT_GRAY);
 
@@ -146,7 +146,7 @@ public class Diashow extends JPanel implements ActionListener,
 
 
 
-		path = Settings.diaDirectory.load();
+		this.path = path;
 		this.dirPath.setText(path.getAbsolutePath());
 		setVisible(true);
 
@@ -386,7 +386,7 @@ public class Diashow extends JPanel implements ActionListener,
 		c.gridy = 1;
 		c.gridwidth = 2;
 		c.weightx =1;
-		JTextField dirPath = new JTextField();
+
 		dirPath.setEditable(false);
 		left.add(dirPath, c);
 
@@ -415,9 +415,8 @@ public class Diashow extends JPanel implements ActionListener,
 		return left;
 	}
 
-	public Diashow(final Window imageView) {
-		this();
-		path = Settings.diaDirectory.load();
+	public Diashow(final Window imageView, File path) {
+		this(path);
 		frame = imageView;
 		openDir();
 
@@ -438,7 +437,6 @@ public class Diashow extends JPanel implements ActionListener,
 				}
 				path = chooser.getSelectedFile();
 				dirPath.setText(path.getAbsolutePath());
-				Settings.diaDirectory.save(path);
 				openDir();
 
 				break;
