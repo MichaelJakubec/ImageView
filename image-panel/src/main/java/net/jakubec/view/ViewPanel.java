@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 Michael Jakubec
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.jakubec.view;
 
 
@@ -17,6 +33,8 @@ import java.util.ArrayList;
 
 public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener, MouseListener,
 		MouseMotionListener {
+
+
 
 	private class ImagePainter extends JPanel {
 
@@ -87,15 +105,17 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	 */
 	private File currentImage;
 
+	private boolean showScrollbars = true;
+
 	/**
-	 * Constructor for a new ViewPanel
+	 * Constructor for a new ViewPanel without the default toolbar.
 	 */
 	public ViewPanel() {
-		this(true);
+		this(false);
 	}
 
 	public ViewPanel(boolean showToolbar) {
-		JLayeredPane pane = new JLayeredPane();
+
 		this.setLayout(new BorderLayout());
 
 		cp = this;
@@ -113,7 +133,7 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 		imp = new ImagePainter();
 		cp.add(imp, BorderLayout.CENTER);
 		if (showToolbar) {
-			cp.add(newMenuBar(new ViewNavigationListener(this)), BorderLayout.NORTH);
+			cp.add(new ViewPanel.ToolBarBuilder().buildMenuBar(new ViewNavigationListener(this)), BorderLayout.NORTH);
 		}
 		addComponentListener(new ComponentAdapter() {
 			@Override
@@ -125,9 +145,9 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 			@Override
 			public void mouseWheelMoved(final MouseWheelEvent e) {
 				int move = e.getWheelRotation();
-				if (move > 0) {
+				if (move < 0) {
 					zoomp();
-				} else if (move < 0) {
+				} else if (move > 0) {
 					zoomm();
 				}
 			}
@@ -146,6 +166,25 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	@Override
 	public void adjustmentValueChanged(final AdjustmentEvent e) {
 		calcZoom(true);
+	}
+
+	/**
+	 * Specifies whether the scrollbars should be visible in case the image is larger than the screen or not. Scrollbars are only displayed if the image is larger than the screen. If the image is smaller than the screen the scrollbars are never shown, regardless of whether the
+	 * {@link #isScrollBarsVisible()} returns true or not.
+	 * @param show if true scrollbars are shown when needed otherwise not.
+	 */
+	public void setScrollBarsVisible(boolean show){
+		this.showScrollbars = show;
+		hBar.setVisible(show);
+		vBar.setVisible(show);
+	}
+
+	/**
+	 * Determins whether the scrollbars get shown if needed or not
+	 * @return true if scrollbars get shown, false otherwise
+	 */
+	public boolean isScrollBarsVisible() {
+		return showScrollbars;
 	}
 
 	/**
@@ -181,7 +220,7 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 			iWidth = sWidth;
 			hBar.setMinimum((int) -((originWidth - pWidth) / 2));
 			hBar.setMaximum((int) ((originWidth - pWidth) / 2));
-			hBar.setVisible(true);
+			hBar.setVisible(showScrollbars);
 		} else {
 			hBar.setMinimum(0);
 			hBar.setMaximum(0);
@@ -194,7 +233,7 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 			int max = (int) ((originHeight - pHeight) / 2);
 			vBar.setMinimum(min);
 			vBar.setMaximum(max);
-			vBar.setVisible(true);
+			vBar.setVisible(showScrollbars);
 		} else {
 			vBar.setMinimum(0);
 			vBar.setMaximum(0);
@@ -232,6 +271,16 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 
 	private void removeImageDisplayListener(ImageDisplayListener listener){
 		this.listenerList.remove(ImageDisplayListener.class, listener);
+	}
+
+	public void showToolbar(ToolBarBuilder viewerToolbarBuilder) {
+		Component old = ((BorderLayout)cp.getLayout()).getLayoutComponent(BorderLayout.NORTH);
+		if (old != null) {
+			this.cp.remove(old);
+		}
+		cp.add(viewerToolbarBuilder.buildMenuBar(new ViewNavigationListener(this)), BorderLayout.NORTH);
+		this.invalidate();
+		this.revalidate();
 	}
 
 	/**
@@ -281,11 +330,6 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 			// Zeichnet das Orignial Bild skalliert
 			g2d.drawImage(origin, 0, 0, (int) Math.round(iWidth), (int) Math.round(iHeight), null);
 		}
-// TODO Zoom info selection listener?
-//		Application.getMainWindow()
-//				.setTitle(
-//						Settings.currentImage.load().getAbsolutePath() + " - "
-//								+ (int) (factor * 100) + "%");
 		xmiddle = origin.getWidth() / 2;
 		ymiddle = origin.getHeight() / 2;
 		cp.repaint();
@@ -417,11 +461,6 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 
 	}
 
-	@Override
-	public void undo() {
-		// TODO Auto-generated method stub
-
-	}
 
 	@Override
 	public void zoom0() {
@@ -524,11 +563,7 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 					run = false;
 				}
 			}
-
-
 		}
-
-
 	}
 
 	/**
@@ -536,62 +571,57 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	 *
 	 * @return the MenuBar for the view
 	 */
-	private static JToolBar newMenuBar(final ActionListener act) {
-		JToolBar toolbar = new JToolBar();
-		JButton btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/open.gif")));
-		btn.setActionCommand("open");
-		toolbar.add(btn);
 
-		btn.addActionListener(act);
+	public static class ToolBarBuilder {
 
-		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/dia.gif")));
-		btn.setActionCommand("dia");
-		toolbar.add(btn);
-		toolbar.addSeparator();
-		btn.addActionListener(act);
+		private ViewNavigationListener act;
 
-		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/previous.gif")));
-		btn.setActionCommand("previous");
-		toolbar.add(btn);
-		btn.addActionListener(act);
+		public void addButtonsToToolbar(JToolBar toolbar) {
 
-		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/next.gif")));
-		btn.setActionCommand("next");
-		toolbar.add(btn);
-		btn.addActionListener(act);
-		toolbar.addSeparator();
 
-		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/zoom+.gif")));
-		btn.setActionCommand("zoom+");
-		toolbar.add(btn);
-		btn.addActionListener(act);
 
-		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/zoom-.gif")));
-		btn.setActionCommand("zoom-");
-		toolbar.add(btn);
-		btn.addActionListener(act);
 
-		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/zoom.gif")));
-		btn.setActionCommand("zoom0");
-		toolbar.add(btn);
-		btn.addActionListener(act);
+			JButton btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/zoom+.gif")));
+			btn.setActionCommand("zoom+");
+			toolbar.add(btn);
+			btn.addActionListener(act);
 
-		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/zoom100.gif")));
-		btn.setActionCommand("zoom1");
-		toolbar.add(btn);
-		btn.addActionListener(act);
-		toolbar.addSeparator();
+			btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/zoom-.gif")));
+			btn.setActionCommand("zoom-");
+			toolbar.add(btn);
+			btn.addActionListener(act);
 
-		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/Rot-.gif")));
-		btn.setActionCommand("rot-");
-		toolbar.add(btn);
-		btn.addActionListener(act);
-		btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/Rot+.gif")));
-		btn.setActionCommand("rot+");
-		toolbar.add(btn);
-		btn.addActionListener(act);
+			btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/zoom.gif")));
+			btn.setActionCommand("zoom0");
+			toolbar.add(btn);
+			btn.addActionListener(act);
 
-		return toolbar;
+			btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/zoom100.gif")));
+			btn.setActionCommand("zoom1");
+			toolbar.add(btn);
+			btn.addActionListener(act);
+			toolbar.addSeparator();
+
+			btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/Rot-.gif")));
+			btn.setActionCommand("rot-");
+			toolbar.add(btn);
+			btn.addActionListener(act);
+			btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/Rot+.gif")));
+			btn.setActionCommand("rot+");
+			toolbar.add(btn);
+			btn.addActionListener(act);
+		}
+
+
+		private JToolBar buildMenuBar(ViewNavigationListener listener) {
+			this.act = listener;
+			JToolBar menuBar = new JToolBar();
+			addButtonsToToolbar(menuBar);
+			return menuBar;
+		}
+
+
 	}
+
 
 }

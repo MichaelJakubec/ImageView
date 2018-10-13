@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 Michael Jakubec
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.jakubec.view;
 
 import java.awt.image.BufferedImage;
@@ -5,8 +21,7 @@ import java.io.File;
 
 /**
  * This interface has to be implemented of every panel of the program which
- * should be display in the program. This class is interface is not used for the
- * {@link net.jakubec.view.plugin.ViewPlugin}.
+ * should be display in the program.
  * 
  * @author amunra
  * @since Version 0.1
@@ -15,14 +30,15 @@ import java.io.File;
 public interface BasicPanel {
 
 	/**
-	 * set the zoomlevel to 100 percent
+	 * Set the zoomlevel to 100 percent
 	 */
 	void fullImage();
 
 	/**
-	 * opens the Image spezified by this File
-	 * 
+	 * opens the Image specified by this File
+	 *
 	 * @param selected the file which should be displayed
+	 * @throws ViewException if the specified file could not be opened
 	 */
 	void openImage(File selected) throws ViewException;
 
@@ -47,10 +63,6 @@ public interface BasicPanel {
 	 */
 	void setImage(BufferedImage img);
 
-	/**
-	 * informs the panel to undo the last action
-	 */
-	void undo();
 
 	/**
 	 * sets the zoomlevel to a value so that the image can be shown full. If the

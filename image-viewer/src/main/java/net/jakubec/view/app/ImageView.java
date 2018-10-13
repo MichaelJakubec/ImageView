@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 Michael Jakubec
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.jakubec.view.app;
 
 import net.jakubec.view.app.settings.Settings;
@@ -105,7 +121,10 @@ public class ImageView extends JFrame {
 	 * @param f the image to be displayed
 	 */
 	private void showViewMode(File f) {
-		ViewPanel viewPanel = new ViewPanel();
+
+		ViewPanel viewPanel = new ViewPanel(false);
+		MenuListener menuListener = new MenuListener(viewPanel);
+		viewPanel.showToolbar(new ViewerToolbarBuilder(menuListener));
 		viewPanel.addImageDisplayListener(new ImageDisplayListener() {
 			@Override
 			public void imageOpened(File file) {
@@ -129,7 +148,6 @@ public class ImageView extends JFrame {
 
 
 		setContentPane(viewPanel);
-		MenuListener menuListener = new MenuListener(viewPanel);
 		setJMenuBar(MenuFactory.createMenu(menuListener));
 	}
 

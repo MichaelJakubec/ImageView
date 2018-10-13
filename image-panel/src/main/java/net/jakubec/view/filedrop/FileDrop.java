@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 Michael Jakubec
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.jakubec.view.filedrop;
 
 import java.awt.datatransfer.DataFlavor;
@@ -11,16 +27,19 @@ import net.jakubec.view.ViewException;
 import net.jakubec.view.filedrop.FileDrop.TransferableObject;
 
 /**
+ * <p>
  * This class makes it easy to drag and drop files from the operating system to
  * a Java program. Any <tt>java.awt.Component</tt> can be dropped onto, but only
  * <tt>javax.swing.JComponent</tt>s will indicate the drop event with a changed
  * border.
- * <p/>
+ * </p>
+ * <p>
  * To use this class, construct a new <tt>FileDrop</tt> by passing it the target
  * component and a <tt>Listener</tt> to receive notification when file(s) have
  * been dropped. Here is an example:
- * <p/>
- * <code><pre>
+ * </p>
+ * <p>
+ * <code>
  *      JPanel myPanel = new JPanel();
  *      new FileDrop( myPanel, new FileDrop.Listener()
  *      {   public void filesDropped( java.io.File[] files )
@@ -29,17 +48,19 @@ import net.jakubec.view.filedrop.FileDrop.TransferableObject;
  *              ...
  *          }   // end filesDropped
  *      }); // end FileDrop.Listener
- * </pre></code>
- * <p/>
+ * </code>
+ * </p>
+ * <p>
  * You can specify the border that will appear when files are being dragged by
  * calling the constructor with a <tt>javax.swing.border.Border</tt>. Only
  * <tt>JComponent</tt>s will show any indication with a border.
- * <p/>
+ * </p>
+ * <p>
  * You can turn on some debugging features by passing a <tt>PrintStream</tt>
  * object (such as <tt>System.out</tt>) into the full constructor. A
  * <tt>null</tt> value will result in no extra debugging information being
  * output.
- * <p/>
+ * </p>
  * 
  * <p>
  * I'm releasing this code into the Public Domain. Enjoy.
@@ -104,7 +125,7 @@ public class FileDrop {
 
 	/**
 	 * Implement this inner interface to listen for when files are dropped. For
-	 * example your class declaration may begin like this: <code><pre>
+	 * example your class declaration may begin like this: <code>
 	 *      public class MyClass implements FileDrop.Listener
 	 *      ...
 	 *      public void filesDropped( java.io.File[] files )
@@ -112,7 +133,7 @@ public class FileDrop {
 	 *          ...
 	 *      }   // end filesDropped
 	 *      ...
-	 * </pre></code>
+	 * </code>
 	 * 
 	 * @since 1.1
 	 */
@@ -124,6 +145,8 @@ public class FileDrop {
 		 * @param files
 		 *            An array of <tt>File</tt>s that were dropped.
 		 * @since 1.0
+		 *
+		 * @throws ViewException in case ths file can not be displayed
 		 */
 		public abstract void filesDropped(java.io.File[] files) throws ViewException;
 
@@ -135,22 +158,19 @@ public class FileDrop {
 	 * {@link java.awt.datatransfer.Transferable} object, use this class to wrap
 	 * your object. For example:
 	 * 
-	 * <pre>
-	 * &lt;code&gt;
+	 * <code>
 	 *      ...
 	 *      MyCoolClass myObj = new MyCoolClass();
 	 *      Transferable xfer = new TransferableObject( myObj );
 	 *      ...
-	 * &lt;/code&gt;
-	 * </pre>
+	 * </code>
 	 * 
 	 * Or if you need to know when the data was actually dropped, like when
 	 * you're moving data out of a list, say, you can use the
 	 * {@link TransferableObject.Fetcher} inner class to return your object Just
 	 * in Time. For example:
 	 * 
-	 * <pre>
-	 * &lt;code&gt;
+	 * <code>
 	 *      ...
 	 *      final MyCoolClass myObj = new MyCoolClass();
 	 * 
@@ -160,10 +180,9 @@ public class FileDrop {
 	 * 
 	 *      Transferable xfer = new TransferableObject( fetcher );
 	 *      ...
-	 * &lt;/code&gt;
-	 * </pre>
+	 * </code>
 	 * 
-	 * The {@link java.awt.datatransfer.DataFlavor} associated with
+	 * The {@literal java.awt.datatransfer.DataFlavor} associated with
 	 * {@link TransferableObject} has the representation class
 	 * <tt>net.iharder.dnd.TransferableObject.class</tt> and MIME type
 	 * <tt>application/x-net.iharder.dnd.TransferableObject</tt>. This data
@@ -323,7 +342,7 @@ public class FileDrop {
 		 * data flavor, if one was created in the constructors, second the
 		 * default {@link #DATA_FLAVOR} associated with
 		 * {@link TransferableObject}, and third the
-		 * {@link java.awt.datatransfer.DataFlavor.stringFlavor}.
+		 * {@literal java.awt.datatransfer.DataFlavor.stringFlavor}.
 		 * 
 		 * @return An array of supported data flavors
 		 * @since 1.1
@@ -424,6 +443,7 @@ public class FileDrop {
 	 * 
 	 * @param c
 	 *            The component to unregister as a drop target
+	 * @return true if the remove was successful
 	 * @since 1.0
 	 */
 	public static boolean remove(final java.awt.Component c) {
@@ -442,6 +462,7 @@ public class FileDrop {
 	 *            The component to unregister
 	 * @param recursive
 	 *            Recursively unregister components within a container
+	 * @return true if the remove was successful
 	 * @since 1.0
 	 */
 	public static boolean remove(final java.io.PrintStream out, final java.awt.Component c,

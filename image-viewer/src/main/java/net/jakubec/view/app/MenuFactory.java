@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 Michael Jakubec
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.jakubec.view.app;
 
 import net.jakubec.view.plugin.PluginOrganizer;
@@ -55,8 +71,9 @@ class MenuFactory {
 		createMenuItem(menu, "menu.view.full", 'V', "full", act);
 		menu.addSeparator();
 		menuitem = createMenuItem(menu, "menu.view.zoomin", '+', "zoom+", true, "zoom+.gif", act);
-		menuitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, InputEvent.CTRL_MASK));
-		createMenuItem(menu, "menu.view.zoomout", '-', "zoom-", true, "zoom-.gif", act);
+		menuitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS| KeyEvent.VK_ADD, InputEvent.CTRL_MASK));
+		menuitem = createMenuItem(menu, "menu.view.zoomout", '-', "zoom-", true, "zoom-.gif", act);
+		menuitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS| KeyEvent.VK_SUBTRACT, InputEvent.CTRL_MASK));
 		createMenuItem(menu, "menu.view.fitin", '0', "zoom0", true, "zoom.gif", act);
 		createMenuItem(menu, "menu.view.normalSize", '1', "zoom1", true, "zoom100.gif", act);
 		menubar.add(menu);
