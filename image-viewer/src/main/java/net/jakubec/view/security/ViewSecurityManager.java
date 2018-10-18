@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.jakubec.security;
+package net.jakubec.view.security;
 
 import java.security.Permission;
 import java.util.PropertyPermission;
