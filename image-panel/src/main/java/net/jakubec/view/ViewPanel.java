@@ -566,21 +566,21 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 		}
 	}
 
-	/**
-	 * Creates a new MenuBar for the View
-	 *
-	 * @return the MenuBar for the view
-	 */
 
+	/**
+	 * This class is used to add a Toolbar to the ViewPanel
+	 */
 	public static class ToolBarBuilder {
 
 		private ViewNavigationListener act;
 
+
+		/**
+		 * This method is called to add buttons to the tool bar. In sub classes calling {@literal super.addButtonsToToolbar}
+		 * allows to add the default buttons to the toolbar.
+		 * @param toolbar the toolbar which will be displayed in the view
+		 */
 		public void addButtonsToToolbar(JToolBar toolbar) {
-
-
-
-
 			JButton btn = new JButton(new ImageIcon(ViewPanel.class.getResource("/zoom+.gif")));
 			btn.setActionCommand("zoom+");
 			toolbar.add(btn);
