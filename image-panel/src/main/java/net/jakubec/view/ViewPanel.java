@@ -21,7 +21,7 @@ import net.jakubec.view.dia.Diapresentation;
 import net.jakubec.view.filedrop.FileDrop;
 import net.jakubec.view.listener.ImageDisplayListener;
 import net.jakubec.view.listener.ViewNavigationListener;
-import net.jakubec.view.properties.VProperties;
+
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -31,9 +31,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 
-public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener, MouseListener,
-		MouseMotionListener {
-
+public class ViewPanel extends JPanel implements BasicPanel {
 
 
 	private class ImagePainter extends JPanel {
@@ -50,10 +48,6 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	}
 
 	/**
-	 * Container for the
-	 */
-	private final Container cp;
-	/**
 	 * The factor of the image which is scaled
 	 */
 	private double factor;
@@ -61,10 +55,6 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	 * Horizontal ScrollBar
 	 */
 	private final JScrollBar hBar;
-	/**
-	 * The old MouseEvent
-	 */
-	private MouseEvent oldEvent;
 	/**
 	 * The shown image
 	 */
@@ -118,30 +108,23 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 
 		this.setLayout(new BorderLayout());
 
-		cp = this;
-		cp.setBackground(Color.black);
+		MouseAdapter mouseListener = new MouseAdapter() {
+			/**
+			 * The old MouseEvent
+			 */
+			private MouseEvent oldEvent;
 
-
-		addMouseListener(this);
-		addMouseMotionListener(this);
-		vBar = new JScrollBar(JScrollBar.VERTICAL, 0, 0, 0, 0);
-		vBar.addAdjustmentListener(this);
-		hBar = new JScrollBar(JScrollBar.HORIZONTAL, 0, 0, 0, 0);
-		hBar.addAdjustmentListener(this);
-		cp.add(vBar, BorderLayout.EAST);
-		cp.add(hBar, BorderLayout.SOUTH);
-		imp = new ImagePainter();
-		cp.add(imp, BorderLayout.CENTER);
-		if (showToolbar) {
-			cp.add(new ViewPanel.ToolBarBuilder().buildMenuBar(new ViewNavigationListener(this)), BorderLayout.NORTH);
-		}
-		addComponentListener(new ComponentAdapter() {
 			@Override
-			public void componentResized(final ComponentEvent e) {
+			public void mouseDragged(final MouseEvent e) {
+				int divX = e.getX() - oldEvent.getX();
+				int divY = e.getY() - oldEvent.getY();
+
+				hBar.setValue((int) (hBar.getValue() - divX * 1.0 / factor));
+				vBar.setValue((int) (vBar.getValue() - divY * 1.0 / factor));
+				oldEvent = e;
+
 				calcZoom(true);
 			}
-		});
-		addMouseWheelListener(new MouseAdapter() {
 			@Override
 			public void mouseWheelMoved(final MouseWheelEvent e) {
 				int move = e.getWheelRotation();
@@ -151,7 +134,45 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 					zoomm();
 				}
 			}
+
+			@Override
+			public void mousePressed(final MouseEvent e) {
+				oldEvent = e;
+			}
+
+
+			@Override
+			public void mouseClicked(final MouseEvent e) {
+				if (e.getClickCount() == 2) {
+					if (factor == 1.0) {
+						zoom0();
+					} else {
+						zoom1();
+					}
+				}
+			}
+
+		};
+		addMouseListener(mouseListener);
+		addMouseMotionListener(mouseListener);
+		vBar = new JScrollBar(JScrollBar.VERTICAL, 0, 0, 0, 0);
+		vBar.addAdjustmentListener((e) -> calcZoom(true));
+		hBar = new JScrollBar(JScrollBar.HORIZONTAL, 0, 0, 0, 0);
+		hBar.addAdjustmentListener((e) -> calcZoom(true));
+		add(vBar, BorderLayout.EAST);
+		add(hBar, BorderLayout.SOUTH);
+		imp = new ImagePainter();
+		add(imp, BorderLayout.CENTER);
+		if (showToolbar) {
+			add(new ViewPanel.ToolBarBuilder().buildMenuBar(new ViewNavigationListener(this)), BorderLayout.NORTH);
+		}
+		addComponentListener(new ComponentAdapter() {
+			@Override
+			public void componentResized(final ComponentEvent e) {
+				calcZoom(true);
+			}
 		});
+		addMouseWheelListener(mouseListener);
 		hBar.setVisible(false);
 		vBar.setVisible(false);
 		new FileDrop(this, files -> {
@@ -160,12 +181,7 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 			}
 		});
 
-		//add(cp, BorderLayout.CENTER);
-	}
-
-	@Override
-	public void adjustmentValueChanged(final AdjustmentEvent e) {
-		calcZoom(true);
+		setBackground(Color.black);
 	}
 
 	/**
@@ -262,7 +278,7 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 		}
 		g2d.drawImage(subImage, 0, 0, (int) Math.round(iWidth), (int) Math.round(iHeight), null);
-		cp.repaint();
+		repaint();
 	}
 
 	public void addImageDisplayListener(ImageDisplayListener listener){
@@ -274,11 +290,11 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	}
 
 	public void showToolbar(ToolBarBuilder viewerToolbarBuilder) {
-		Component old = ((BorderLayout)cp.getLayout()).getLayoutComponent(BorderLayout.NORTH);
+		Component old = ((BorderLayout)getLayout()).getLayoutComponent(BorderLayout.NORTH);
 		if (old != null) {
-			this.cp.remove(old);
+			this.remove(old);
 		}
-		cp.add(viewerToolbarBuilder.buildMenuBar(new ViewNavigationListener(this)), BorderLayout.NORTH);
+		add(viewerToolbarBuilder.buildMenuBar(new ViewNavigationListener(this)), BorderLayout.NORTH);
 		this.invalidate();
 		this.revalidate();
 	}
@@ -332,7 +348,7 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 		}
 		xmiddle = origin.getWidth() / 2;
 		ymiddle = origin.getHeight() / 2;
-		cp.repaint();
+		repaint();
 
 	}
 
@@ -348,54 +364,9 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 
 	@Override
 	public void setBackground(Color color) {
-		//cp.setBackground(color);
-	}
-
-
-	@Override
-	public void mouseClicked(final MouseEvent e) {
-		// Nothing to do
-	}
-
-	@Override
-	public void mouseDragged(final MouseEvent e) {
-		int divX = e.getX() - oldEvent.getX();
-		int divY = e.getY() - oldEvent.getY();
-
-		hBar.setValue((int) (hBar.getValue() - divX * 1.0 / factor));
-		vBar.setValue((int) (vBar.getValue() - divY * 1.0 / factor));
-		oldEvent = e;
-
-		calcZoom(true);
-
-	}
-
-	@Override
-	public void mouseEntered(final MouseEvent e) {
-		// Nothing to do
-
-	}
-
-	@Override
-	public void mouseExited(final MouseEvent e) {
-		// nothing to do
-
-	}
-
-	@Override
-	public void mouseMoved(final MouseEvent arg0) {
-		// Nothing to do
-	}
-
-	@Override
-	public void mousePressed(final MouseEvent e) {
-		oldEvent = e;
-	}
-
-	@Override
-	public void mouseReleased(final MouseEvent e) {
-		// nothing to do
-
+		if (imp  != null) {
+			imp.setBackground(color);
+		}
 	}
 
 	@Override
@@ -422,18 +393,12 @@ public class ViewPanel extends JPanel implements BasicPanel, AdjustmentListener,
 	@Override
 	public void printImage() {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void rotateImage(final boolean clockwise) {
 		if (origin == null) return;
 		BufferedImage rotatedImage;
-
-
-//		rotatedImage = new BufferedImage(origin.getHeight(), origin.getWidth(),
-//				(fileExtension.equalsIgnoreCase("jpg") ? origin.getType()
-//						: BufferedImage.TYPE_INT_ARGB));
 
 		rotatedImage = new BufferedImage(origin.getHeight(), origin.getWidth(), origin.getType());
 
